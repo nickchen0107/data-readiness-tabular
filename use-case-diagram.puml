@@ -1,0 +1,160 @@
+@startuml SAFE-AI Excel梳理小工具 Use Case Diagram
+
+' ============================================
+' SAFE-AI Excel 梳理小工具 — Use Case Diagram
+' ============================================
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F6F7F9
+  BorderColor #1a1f2e
+  ArrowColor #2b6cb0
+}
+skinparam actor {
+  BackgroundColor #ebf3fb
+  BorderColor #2b6cb0
+}
+
+' --- Actors ---
+actor "傳統產業\n資料擁有者" as Owner #ebf3fb
+actor "AI 導入顧問\n/ 系統整合商" as Consultant #e6f4f1
+actor "系統管理者" as Admin #fdf3e7
+
+' --- External Systems ---
+actor "Gemini API" as Gemini <<外部系統>>
+actor "區塊鏈服務" as Blockchain <<外部系統>>
+
+' --- System Boundary ---
+rectangle "SAFE-AI Excel 梳理小工具" {
+
+  package "帳號管理" {
+    usecase "註冊帳號" as UC1
+    usecase "登入系統" as UC2
+    usecase "登出系統" as UC3
+  }
+
+  package "資料上傳與評估" {
+    usecase "上傳 Excel / CSV" as UC4
+    usecase "選擇 Sheet" as UC5
+    usecase "執行 AI Data\nReadiness 評估" as UC6
+    usecase "查看評估報告\n（六項指標 + 總分）" as UC7
+    usecase "查看問題清單\n（嚴重度 + 建議）" as UC8
+  }
+
+  package "分流與梳理" {
+    usecase "選擇處理路徑\n（梳理 / 重新上傳）" as UC9
+    usecase "套用批次規則\n（日期/重複/名稱/小計）" as UC11
+    usecase "逐列處理\n（填 N/A / 刪除）" as UC12
+    usecase "補齊後重新上傳" as UC13
+  }
+
+  package "產出與存證" {
+    usecase "下載 refined.xlsx" as UC14
+    usecase "下載 PDF 報告\n（美觀排版）" as UC15
+    usecase "下載 cleaning.log" as UC16
+    usecase "提交 Evidence 存證\n（SHA-256 hash）" as UC17
+    usecase "查驗存證狀態" as UC18
+  }
+
+  package "前後對比問答" {
+    usecase "提出資料問題" as UC19
+    usecase "查看前後對比回答\n（左右並排）" as UC20
+    usecase "使用建議問題" as UC21
+    usecase "同意資料保護聲明" as UC22
+  }
+
+  package "系統設定" {
+    usecase "調整評分權重\n（六項指標滑桿）" as UC23
+  }
+}
+
+' --- Owner relationships ---
+Owner --> UC1
+Owner --> UC2
+Owner --> UC3
+Owner --> UC4
+Owner --> UC6
+Owner --> UC7
+Owner --> UC8
+Owner --> UC9
+Owner --> UC11
+Owner --> UC12
+Owner --> UC13
+Owner --> UC14
+Owner --> UC15
+Owner --> UC16
+Owner --> UC17
+Owner --> UC18
+Owner --> UC19
+Owner --> UC20
+Owner --> UC21
+
+' --- Consultant relationships ---
+Consultant --> UC2
+Consultant --> UC4
+Consultant --> UC6
+Consultant --> UC7
+Consultant --> UC15
+
+' --- Admin relationships ---
+Admin --> UC2
+Admin --> UC23
+
+' --- Include / Extend ---
+UC4 ..> UC5 : <<include>>
+UC6 ..> UC7 : <<include>>
+UC6 ..> UC8 : <<include>>
+UC19 ..> UC22 : <<include>>
+UC19 ..> UC20 : <<include>>
+UC9 ..> UC11 : <<extend>>\n選擇「以現況梳理」
+UC9 ..> UC13 : <<extend>>\n選擇「補齊後重新上傳」
+
+' --- External system relationships ---
+UC19 --> Gemini
+UC17 --> Blockchain
+UC18 --> Blockchain
+
+' --- Notes ---
+note right of Owner
+  **典型客戶畫像**
+  ──────────────
+  • 製造業、貿易業、零售業、物流業
+  • 中小企業（50-500人）
+  • 核心資料仍以 Excel 管理
+  • 想導入 AI 但卡在「資料品質」
+  • 沒有資料工程師
+  • 需要簡單工具評估「我的資料
+    離 AI 還有多遠」
+  
+  **典型資料**
+  ──────────
+  • 業績訂單報表
+  • 庫存盤點表
+  • BOM 物料清單
+  • 稽核 / 檢查表
+end note
+
+note right of Consultant
+  **顧問使用情境**
+  ──────────────
+  • 快速評估客戶資料品質
+  • 產出 PDF 報告附在提案書中
+  • 向客戶說明「哪些資料需先整理」
+end note
+
+note bottom of Gemini
+  僅用於模組 F
+  前後對比問答
+  （非評估計算）
+end note
+
+note bottom of Blockchain
+  本專案僅定義
+  API 接口
+  實作在另一個
+  專案中
+end note
+
+@enduml

@@ -1,0 +1,288 @@
+# 2026/06/16 18:19:01.010256 [TestPBT_DateNormalization] [rapid] draw rows: 10
+# 2026/06/16 18:19:01.010258 [TestPBT_DateNormalization] [rapid] draw cols: 1
+# 2026/06/16 18:19:01.010260 [TestPBT_DateNormalization] [rapid] draw year_0: 2025
+# 2026/06/16 18:19:01.010261 [TestPBT_DateNormalization] [rapid] draw month_0: 4
+# 2026/06/16 18:19:01.010261 [TestPBT_DateNormalization] [rapid] draw day_0: 5
+# 2026/06/16 18:19:01.010261 [TestPBT_DateNormalization] [rapid] draw fmt_0: 2
+# 2026/06/16 18:19:01.010262 [TestPBT_DateNormalization] [rapid] draw year_1: 2021
+# 2026/06/16 18:19:01.010263 [TestPBT_DateNormalization] [rapid] draw month_1: 1
+# 2026/06/16 18:19:01.010263 [TestPBT_DateNormalization] [rapid] draw day_1: 2
+# 2026/06/16 18:19:01.010266 [TestPBT_DateNormalization] [rapid] draw fmt_1: 2
+# 2026/06/16 18:19:01.010266 [TestPBT_DateNormalization] [rapid] draw year_2: 2020
+# 2026/06/16 18:19:01.010267 [TestPBT_DateNormalization] [rapid] draw month_2: 5
+# 2026/06/16 18:19:01.010267 [TestPBT_DateNormalization] [rapid] draw day_2: 4
+# 2026/06/16 18:19:01.010268 [TestPBT_DateNormalization] [rapid] draw fmt_2: 0
+# 2026/06/16 18:19:01.010268 [TestPBT_DateNormalization] [rapid] draw year_3: 2020
+# 2026/06/16 18:19:01.010269 [TestPBT_DateNormalization] [rapid] draw month_3: 6
+# 2026/06/16 18:19:01.010269 [TestPBT_DateNormalization] [rapid] draw day_3: 6
+# 2026/06/16 18:19:01.010270 [TestPBT_DateNormalization] [rapid] draw fmt_3: 2
+# 2026/06/16 18:19:01.010271 [TestPBT_DateNormalization] [rapid] draw year_4: 2023
+# 2026/06/16 18:19:01.010271 [TestPBT_DateNormalization] [rapid] draw month_4: 11
+# 2026/06/16 18:19:01.010272 [TestPBT_DateNormalization] [rapid] draw day_4: 6
+# 2026/06/16 18:19:01.010272 [TestPBT_DateNormalization] [rapid] draw fmt_4: 0
+# 2026/06/16 18:19:01.010273 [TestPBT_DateNormalization] [rapid] draw year_5: 2025
+# 2026/06/16 18:19:01.010273 [TestPBT_DateNormalization] [rapid] draw month_5: 11
+# 2026/06/16 18:19:01.010274 [TestPBT_DateNormalization] [rapid] draw day_5: 28
+# 2026/06/16 18:19:01.010274 [TestPBT_DateNormalization] [rapid] draw fmt_5: 2
+# 2026/06/16 18:19:01.010275 [TestPBT_DateNormalization] [rapid] draw year_6: 2021
+# 2026/06/16 18:19:01.010275 [TestPBT_DateNormalization] [rapid] draw month_6: 6
+# 2026/06/16 18:19:01.010275 [TestPBT_DateNormalization] [rapid] draw day_6: 8
+# 2026/06/16 18:19:01.010276 [TestPBT_DateNormalization] [rapid] draw fmt_6: 0
+# 2026/06/16 18:19:01.010276 [TestPBT_DateNormalization] [rapid] draw year_7: 2025
+# 2026/06/16 18:19:01.010277 [TestPBT_DateNormalization] [rapid] draw month_7: 6
+# 2026/06/16 18:19:01.010277 [TestPBT_DateNormalization] [rapid] draw day_7: 2
+# 2026/06/16 18:19:01.010278 [TestPBT_DateNormalization] [rapid] draw fmt_7: 1
+# 2026/06/16 18:19:01.010278 [TestPBT_DateNormalization] [rapid] draw year_8: 2024
+# 2026/06/16 18:19:01.010280 [TestPBT_DateNormalization] [rapid] draw month_8: 2
+# 2026/06/16 18:19:01.010281 [TestPBT_DateNormalization] [rapid] draw day_8: 2
+# 2026/06/16 18:19:01.010281 [TestPBT_DateNormalization] [rapid] draw fmt_8: 2
+# 2026/06/16 18:19:01.010282 [TestPBT_DateNormalization] [rapid] draw year_9: 2021
+# 2026/06/16 18:19:01.010282 [TestPBT_DateNormalization] [rapid] draw month_9: 4
+# 2026/06/16 18:19:01.010282 [TestPBT_DateNormalization] [rapid] draw day_9: 1
+# 2026/06/16 18:19:01.010284 [TestPBT_DateNormalization] [rapid] draw fmt_9: 2
+# 2026/06/16 18:19:01.010313 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2025/04/05" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2025/04/05"
+# 2026/06/16 18:19:01.010326 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2021/01/02" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2021/01/02"
+# 2026/06/16 18:19:01.010339 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2020/05/04" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2020/05/04"
+# 2026/06/16 18:19:01.010353 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2020/06/06" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2020/06/06"
+# 2026/06/16 18:19:01.010365 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2023/11/06" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2023/11/06"
+# 2026/06/16 18:19:01.010376 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2025/11/28" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2025/11/28"
+# 2026/06/16 18:19:01.010388 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2021/06/08" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2021/06/08"
+# 2026/06/16 18:19:01.010398 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2025/06/02" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2025/06/02"
+# 2026/06/16 18:19:01.010410 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2024/02/02" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2024/02/02"
+# 2026/06/16 18:19:01.010426 [TestPBT_DateNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:134
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:120
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Expect "2021/04/01" to match "^\d{4}-\d{2}-\d{2}$"
+# 	Test:       	TestPBT_DateNormalization
+# 	Messages:   	Date cell should be in yyyy-MM-dd format, got: "2021/04/01"
+# 
+v0.4.8#312643284164578092
+0x1610c813343da2
+0x745189e3fd7c2
+0x7
+0x1ea125b0122ae9
+0x38692d36751e9
+0x0
+0x80e86be464128
+0x1711ffc1452846
+0x5
+0x6d950b565b13f
+0x45a78f42b9d29
+0x3
+0x1abd8beab64458
+0x84e8cd4ddfbee
+0x4
+0xc95bbeaba6193
+0x524e0bb99ae3d
+0x3
+0x2
+0xd38a206d6719f
+0x18da26f2f5b1aa
+0x6
+0x6
+0x1
+0xf25f535f5f7f7
+0xfa341b3705765
+0x0
+0x2d69fa550da4d
+0xaccaecb4d327
+0x1
+0x13ff1d0d046548
+0x1089d31219ec44
+0x3
+0x2
+0x1f83c8edddad6e
+0x659ec46491123
+0x0
+0xad64ac23373b3
+0x1c1c1ab8fd9c5b
+0x4
+0xef2037909ab5
+0x55fa5dc12d087
+0x3
+0x25a6c907dc7e6
+0x6dc2105a6e68c
+0x0
+0xd4ea3c8d0ad37
+0x6418b7790273
+0x0
+0x18123303cb8477
+0x81a5a8335728a
+0x5
+0x13cb4b293225
+0x14d2ff013106bb
+0x5
+0x7131a9988e08d
+0x4b42abfb97845
+0x2
+0x7fd29838bbaa
+0x14052c5f613fa3
+0x3
+0xee023d11d5049
+0x14a3bc02eab16b
+0xa
+0x12313d829b513a
+0x193325f9e89c86
+0x5
+0x1bd25e714a91d3
+0x1a920df9921d25
+0x0
+0xf22c1b6f70c99
+0xd27dfe7302809
+0x5
+0x26ccb6a571b45
+0x151bf9249b15f0
+0xa
+0x1172bd067cde08
+0x157cf8272adf52
+0x1b
+0x2f38c6cbef480
+0x19c60412788ffc
+0x2
+0x121dcad8999e95
+0x34deb257608cc
+0x1
+0x1c4a3ecea622fa
+0xbb470d917ec40
+0x5
+0x152a222d660f02
+0x70f3c5a9b19a6
+0x7
+0x1335f0fe2c03ff
+0xdfd9de2c158b5
+0x0
+0x1251b473440602
+0xb4a088d7fa602
+0x5
+0x553b6c2b5ae01
+0x106ae31a410714
+0x5
+0x17c4074c4dd202
+0x15ec62bd2ce360
+0x1
+0x11affe34c59783
+0x9fcb36acc109b
+0x3
+0x1
+0x6f509eb8c5319
+0x1144c089256560
+0x4
+0x2c4fec3ed89c1
+0x2ea3030fe52f1
+0x1
+0x1ced4deb14ea1d
+0x9b61c48ae551c
+0x1
+0xf720089ba065
+0xf939c60771db5
+0x2
+0x13d29857cd7604
+0xa95cc33f11b24
+0x7
+0x1
+0x12e313812f11eb
+0x1cceb5f5317f4f
+0x3
+0x190431cd6341a2
+0x1ac82aa0da9e74
+0x0
+0x1ef228dff8c762
+0x156b9d05648eac
+0x3
+0x3
+0x2

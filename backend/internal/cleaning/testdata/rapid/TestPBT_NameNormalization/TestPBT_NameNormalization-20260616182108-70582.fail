@@ -1,0 +1,136 @@
+# 2026/06/16 18:21:08.877357 [TestPBT_NameNormalization] [rapid] draw base: "Gjbibaa"
+# 2026/06/16 18:21:08.877361 [TestPBT_NameNormalization] [rapid] draw num_variants: 5
+# 2026/06/16 18:21:08.877396 [TestPBT_NameNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:217
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:182
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Not equal: 
+# 	            	expected: "Gjbibaa Corp."
+# 	            	actual  : "Gjbibaa"
+# 	            	
+# 	            	Diff:
+# 	            	--- Expected
+# 	            	+++ Actual
+# 	            	@@ -1 +1 @@
+# 	            	-Gjbibaa Corp.
+# 	            	+Gjbibaa
+# 	Test:       	TestPBT_NameNormalization
+# 	Messages:   	Row 0 should be unified to longest variant "Gjbibaa Corp.", got "Gjbibaa"
+# 2026/06/16 18:21:08.877422 [TestPBT_NameNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:217
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:182
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Not equal: 
+# 	            	expected: "Gjbibaa Corp."
+# 	            	actual  : "Gjbibaa"
+# 	            	
+# 	            	Diff:
+# 	            	--- Expected
+# 	            	+++ Actual
+# 	            	@@ -1 +1 @@
+# 	            	-Gjbibaa Corp.
+# 	            	+Gjbibaa
+# 	Test:       	TestPBT_NameNormalization
+# 	Messages:   	Row 1 should be unified to longest variant "Gjbibaa Corp.", got "Gjbibaa"
+# 2026/06/16 18:21:08.877451 [TestPBT_NameNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:217
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:182
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Not equal: 
+# 	            	expected: "Gjbibaa Corp."
+# 	            	actual  : "Gjbibaa"
+# 	            	
+# 	            	Diff:
+# 	            	--- Expected
+# 	            	+++ Actual
+# 	            	@@ -1 +1 @@
+# 	            	-Gjbibaa Corp.
+# 	            	+Gjbibaa
+# 	Test:       	TestPBT_NameNormalization
+# 	Messages:   	Row 2 should be unified to longest variant "Gjbibaa Corp.", got "Gjbibaa"
+# 2026/06/16 18:21:08.877472 [TestPBT_NameNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:217
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:182
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Not equal: 
+# 	            	expected: "Gjbibaa Corp."
+# 	            	actual  : "Gjbibaa"
+# 	            	
+# 	            	Diff:
+# 	            	--- Expected
+# 	            	+++ Actual
+# 	            	@@ -1 +1 @@
+# 	            	-Gjbibaa Corp.
+# 	            	+Gjbibaa
+# 	Test:       	TestPBT_NameNormalization
+# 	Messages:   	Row 3 should be unified to longest variant "Gjbibaa Corp.", got "Gjbibaa"
+# 2026/06/16 18:21:08.877494 [TestPBT_NameNormalization] 
+# 	Error Trace:	/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:217
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:458
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:467
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:292
+# 	            				/Users/nick/go/pkg/mod/pgregory.net/rapid@v1.3.0/engine.go:207
+# 	            				/Users/nick/Documents/krio/S.A.F.E.-AI DatabrushingTool/v1_excel/backend/internal/cleaning/pbt_test.go:182
+# 	            				/opt/homebrew/Cellar/go/1.26.1/libexec/src/runtime/asm_arm64.s:1447
+# 	Error:      	Not equal: 
+# 	            	expected: "Gjbibaa Corp."
+# 	            	actual  : "Gjbibaa"
+# 	            	
+# 	            	Diff:
+# 	            	--- Expected
+# 	            	+++ Actual
+# 	            	@@ -1 +1 @@
+# 	            	-Gjbibaa Corp.
+# 	            	+Gjbibaa
+# 	Test:       	TestPBT_NameNormalization
+# 	Messages:   	Row 4 should be unified to longest variant "Gjbibaa Corp.", got "Gjbibaa"
+# 
+v0.4.8#15550692145785000616
+0x0
+0x82e1e821ae2c7
+0x6
+0x20a4bc2804c12
+0x0
+0x17d074eaaf12d3
+0x9
+0x19bf31dc781fa8
+0x0
+0x2347b868b4c79
+0x1
+0x3cfbf4ca47824
+0x0
+0x12cf22d3d47077
+0x8
+0x18491241faa61d
+0x0
+0x578c728c9d170
+0x1
+0x71cf50dbb1804
+0x0
+0xf95f5b87ed90c
+0x1f
+0x0
+0x15ececd7cc99b1
+0x0
+0x219c20c6fb0a7
+0x0
+0x1b404d331c7c5
+0x7c11b43607aa2
+0xb4ae6231bccfd
+0x3

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAFE-AI 資料梳理平台 — Excel 梳理小工具</title>
+<style>
+  :root{
+    --ink:#1a1f2e;
+    --ink-soft:#5a6473;
+    --ink-faint:#8b94a3;
+    --line:#e4e7ec;
+    --line-soft:#eef0f3;
+    --paper:#ffffff;
+    --canvas:#f6f7f9;
+    --panel:#fbfcfd;
+    --accent:#2b6cb0;
+    --accent-soft:#ebf3fb;
+    --teal:#0f766e;
+    --teal-soft:#e6f4f1;
+    --amber:#b45309;
+    --amber-soft:#fdf3e7;
+    --rose:#b42318;
+    --rose-soft:#fdecea;
+    --green:#15803d;
+    --green-soft:#eaf6ee;
+    --radius:10px;
+    --radius-sm:7px;
+    --mono:'SF Mono',ui-monospace,'Cascadia Code','JetBrains Mono',Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang TC','Microsoft JhengHei',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:var(--sans);background:var(--canvas);color:var(--ink);line-height:1.6;font-size:15px}
+  .demo-ribbon{background:var(--ink);color:#fff;text-align:center;font-size:12px;letter-spacing:.04em;padding:6px;font-family:var(--mono)}
+  .demo-ribbon b{color:#ffd27a;font-weight:600}
+
+  /* shell */
+  .shell{max-width:1180px;margin:0 auto;padding:0 24px}
+  header.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:13px}
+  .brand .mark{width:38px;height:38px;border-radius:9px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;font-family:var(--mono);letter-spacing:-.04em}
+  .brand h1{font-size:16px;font-weight:650;letter-spacing:-.01em;line-height:1.2}
+  .brand .sub{font-size:12.5px;color:var(--ink-faint);font-weight:500}
+  .top-meta{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);text-align:right;line-height:1.5}
+
+  /* stepper */
+  .stepper{display:flex;gap:0;padding:18px 0 4px;overflow-x:auto}
+  .stepper .step{display:flex;align-items:center;gap:9px;padding-right:8px;white-space:nowrap;opacity:.45;transition:opacity .25s}
+  .stepper .step.active{opacity:1}
+  .stepper .step.done{opacity:.8}
+  .stepper .num{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--ink-faint);display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);color:var(--ink-faint);flex:none}
+  .stepper .step.active .num{background:var(--accent);border-color:var(--accent);color:#fff}
+  .stepper .step.done .num{background:var(--ink);border-color:var(--ink);color:#fff}
+  .stepper .lbl{font-size:13px;font-weight:550}
+  .stepper .lbl small{display:block;font-size:10.5px;color:var(--ink-faint);font-weight:500;font-family:var(--mono)}
+  .stepper .bar{width:26px;height:1.5px;background:var(--line);margin:0 4px;flex:none}
+
+  /* stage */
+  main{padding:30px 0 60px}
+  .stage{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:440px;display:flex;flex-direction:column}
+  .stage-head{padding:20px 28px;border-bottom:1px solid var(--line-soft);display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+  .stage-head .eyebrow{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:5px}
+  .stage-head h2{font-size:21px;font-weight:650;letter-spacing:-.015em}
+  .stage-head p.lede{color:var(--ink-soft);font-size:14px;margin-top:5px;max-width:560px}
+  .rd-tag{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);border:1px dashed var(--line);border-radius:6px;padding:5px 9px;white-space:nowrap;background:var(--panel);line-height:1.5;text-align:left;flex:none}
+  .rd-tag b{color:var(--ink-soft);font-weight:600}
+  .stage-body{padding:28px;flex:1}
+
+  /* nav */
+  .stage-foot{padding:16px 28px;border-top:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;background:var(--panel)}
+  button{font-family:var(--sans);cursor:pointer;border:none;background:none}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;padding:10px 18px;border-radius:var(--radius-sm);transition:all .15s}
+  .btn-primary{background:var(--ink);color:#fff}
+  .btn-primary:hover{background:#2d3344}
+  .btn-ghost{color:var(--ink-soft);border:1px solid var(--line)}
+  .btn-ghost:hover{background:var(--paper);border-color:var(--ink-faint)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .foot-hint{font-size:12.5px;color:var(--ink-faint)}
+
+  /* generic ui bits */
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px}
+  .stat .k{font-size:12px;color:var(--ink-faint);font-weight:500;margin-bottom:6px;font-family:var(--mono)}
+  .stat .v{font-size:27px;font-weight:700;letter-spacing:-.02em}
+  .stat .v small{font-size:14px;font-weight:500;color:var(--ink-faint)}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--mono)}
+  .pill.ready{background:var(--green-soft);color:var(--green)}
+  .pill.cond{background:var(--amber-soft);color:var(--amber)}
+  .pill.not{background:var(--rose-soft);color:var(--rose)}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+  /* upload */
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:40px;text-align:center;background:var(--panel);transition:all .2s}
+  .drop .ic{font-size:34px;color:var(--ink-faint);margin-bottom:10px}
+  .drop h3{font-size:16px;font-weight:600;margin-bottom:4px}
+  .drop p{font-size:13px;color:var(--ink-faint)}
+  .file-chip{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:var(--radius);padding:13px 16px;background:var(--paper);margin-top:16px}
+  .file-chip .fic{width:34px;height:34px;border-radius:7px;background:var(--green-soft);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;font-family:var(--mono)}
+  .file-chip .meta{flex:1}
+  .file-chip .meta .nm{font-size:14px;font-weight:600}
+  .file-chip .meta .ds{font-size:12px;color:var(--ink-faint);font-family:var(--mono)}
+  .sample-pick{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .sample-pick button{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:20px;padding:6px 13px;color:var(--ink-soft);background:var(--paper);transition:all .15s}
+  .sample-pick button:hover{border-color:var(--accent);color:var(--accent)}
+  .sample-pick button.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+
+  /* score gauge */
+  .score-wrap{display:flex;gap:26px;align-items:center}
+  .gauge{position:relative;width:140px;height:140px;flex:none}
+  .gauge svg{transform:rotate(-90deg)}
+  .gauge .read{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .read .n{font-size:34px;font-weight:750;letter-spacing:-.03em;line-height:1}
+  .gauge .read .of{font-size:11px;color:var(--ink-faint);font-family:var(--mono);margin-top:3px}
+
+  /* metric rows */
+  .metric{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--line-soft)}
+  .metric:last-child{border-bottom:none}
+  .metric .mname{flex:none;width:178px}
+  .metric .mname .t{font-size:14px;font-weight:600}
+  .metric .mname .e{font-size:11px;color:var(--ink-faint);font-family:var(--mono)}
+  .metric .track{flex:1;height:7px;border-radius:5px;background:var(--line-soft);overflow:hidden}
+  .metric .track .fill{height:100%;border-radius:5px}
+  .metric .mscore{flex:none;width:108px;text-align:right;font-size:12.5px;color:var(--ink-soft);font-family:var(--mono)}
+
+  /* issue list */
+  .issue{display:flex;gap:13px;padding:13px 15px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;background:var(--panel)}
+  .issue .sev{width:8px;border-radius:4px;flex:none}
+  .issue .ibody{flex:1}
+  .issue .ibody .it{font-size:14px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:8px}
+  .issue .ibody .id{font-size:12.5px;color:var(--ink-soft)}
+  .issue .icount{font-family:var(--mono);font-size:12px;color:var(--ink-faint);white-space:nowrap;align-self:center}
+  .sev-high{background:var(--rose)}.sev-med{background:var(--amber)}.sev-low{background:var(--accent)}
+  .tag{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600}
+  .tag.high{background:var(--rose-soft);color:var(--rose)}
+  .tag.med{background:var(--amber-soft);color:var(--amber)}
+  .tag.low{background:var(--accent-soft);color:var(--accent)}
+
+  /* benchmark note */
+  .note{display:flex;gap:11px;background:var(--accent-soft);border:1px solid #d3e5f5;border-radius:var(--radius);padding:13px 16px;font-size:13px;color:#1c4e7a;margin-top:18px}
+  .note .ni{font-weight:700;font-family:var(--mono)}
+
+  /* fork cards */
+  .fork{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .fork .opt{border:1.5px solid var(--line);border-radius:12px;padding:22px;cursor:pointer;transition:all .18s;background:var(--panel)}
+  .fork .opt:hover{border-color:var(--accent);background:var(--paper);transform:translateY(-2px)}
+  .fork .opt .oic{width:40px;height:40px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:13px}
+  .fork .opt h3{font-size:16px;font-weight:650;margin-bottom:6px}
+  .fork .opt p{font-size:13px;color:var(--ink-soft);line-height:1.55}
+  .fork .opt .rec{font-family:var(--mono);font-size:10.5px;color:var(--green);font-weight:600;margin-top:10px}
+
+  /* cleaning table */
+  .ctable{width:100%;border-collapse:collapse;font-size:13.5px}
+  .ctable th{text-align:left;font-size:11px;font-family:var(--mono);color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .ctable td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+  .ctable tr:last-child td{border-bottom:none}
+  .ctable .rid{font-family:var(--mono);color:var(--ink-faint);font-size:12px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{font-size:12px;padding:5px 11px;color:var(--ink-soft);background:var(--paper);font-weight:500;border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--ink);color:#fff}
+  .seg button.on.del{background:var(--rose)}
+
+  /* progress */
+  .prog{height:8px;border-radius:5px;background:var(--line-soft);overflow:hidden;margin:18px 0}
+  .prog .pf{height:100%;background:var(--accent);width:0;transition:width .9s ease}
+
+  /* evidence */
+  .ev-card{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .ev-top{background:var(--ink);color:#fff;padding:24px 26px;text-align:center}
+  .ev-top .shield{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+  .ev-top h3{font-size:18px;font-weight:650;letter-spacing:-.01em}
+  .ev-top .en{font-family:var(--mono);font-size:12px;color:#9fb8d4;margin-top:8px;line-height:1.6}
+  .ev-rows{padding:8px 26px 20px}
+  .ev-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+  .ev-row:last-child{border-bottom:none}
+  .ev-row .k{color:var(--ink-soft);font-weight:500}
+  .ev-row .v{font-family:var(--mono);font-size:12px;color:var(--ink)}
+  .ev-flags{display:flex;gap:9px;flex-wrap:wrap;padding:16px 26px;background:var(--green-soft);border-top:1px solid #cfe8d8}
+  .ev-flags .ef{font-family:var(--mono);font-size:11.5px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:6px}
+
+  /* compare qa */
+  .qa-bar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+  .qa-bar button{font-size:13px;border:1px solid var(--line);border-radius:20px;padding:7px 14px;color:var(--ink-soft);background:var(--panel);transition:all .15s}
+  .qa-bar button:hover,.qa-bar button.sel{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .qa-q{background:var(--ink);color:#fff;border-radius:var(--radius);padding:13px 17px;font-size:14.5px;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+  .qa-q .who{font-family:var(--mono);font-size:11px;color:#9fb8d4;flex:none}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .pane{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .pane .ph{padding:11px 16px;font-size:12.5px;font-weight:650;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono)}
+  .pane.raw .ph{background:var(--rose-soft);color:var(--rose)}
+  .pane.refined .ph{background:var(--green-soft);color:var(--green)}
+  .pane .pb{padding:16px;font-size:13.5px;line-height:1.6;flex:1}
+  .pane .src{margin-top:13px;padding-top:12px;border-top:1px dashed var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+  .pane.raw .guard{background:var(--rose-soft);border-radius:7px;padding:9px 12px;font-size:12.5px;color:var(--rose);font-weight:500}
+
+  .muted{color:var(--ink-faint)}
+  .mono{font-family:var(--mono)}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+  @media(max-width:760px){
+    .g2,.g3,.fork,.compare,.score-wrap{grid-template-columns:1fr;display:grid}
+    .score-wrap{justify-items:center;text-align:center}
+    .metric .mname{width:130px}
+    .stage-head{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="demo-ribbon">EBISION DEMO MODE · 視覺化演示原型 · <b>非正式存證 / 非正式合規認證</b></div>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">S</div>
+      <div>
+        <h1>SAFE-AI 資料梳理平台</h1>
+        <div class="sub">Excel 梳理小工具 · AI Data Readiness</div>
+      </div>
+    </div>
+    <div class="top-meta">規格 v0.2<br>demo build</div>
+  </header>
+
+  <nav class="stepper" id="stepper" aria-label="流程步驟"></nav>
+
+  <main>
+    <div class="stage">
+      <div class="stage-head">
+        <div>
+          <div class="eyebrow" id="s-eyebrow"></div>
+          <h2 id="s-title"></h2>
+          <p class="lede" id="s-lede"></p>
+        </div>
+        <div class="rd-tag" id="s-rd"></div>
+      </div>
+      <div class="stage-body" id="s-body"></div>
+      <div class="stage-foot">
+        <button class="btn btn-ghost" id="btn-prev">← 上一步</button>
+        <div class="foot-hint" id="foot-hint"></div>
+        <button class="btn btn-primary" id="btn-next">下一步 →</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const STEPS = [
+  {id:"A0", code:"LANDING", short:"進入", eyebrow:"Landing", title:"先了解你的 AI 資料現況",
+   lede:"想全面評估 AI 資訊安全,可先填寫 AICM 資安成熟度問卷(獨立平台)。或直接試用下方工具。",
+   rd:"<b>邊界</b><br>AICM 屬獨立平台<br>本工具僅放一行提示"},
+  {id:"A", code:"MODULE A", short:"上傳", eyebrow:"模組 A · 上傳", title:"上傳任意 Excel",
+   lede:"不限定資料類型 — 業績、庫存、BOM、訂單、稽核或測試資料皆可。系統執行通用 Readiness 評估。",
+   rd:"<b>模組 A</b><br>通用 Excel 評估<br>不預設業務情境"},
+  {id:"A2", code:"MODULE A", short:"評估", eyebrow:"模組 A · 評估結果", title:"AI Data Readiness Score",
+   lede:"以六項指標衡量這份 Excel 是否具備可讀、可查、可比對、可追溯的結構基礎。",
+   rd:"<b>模組 A 輸出</b><br>readiness score<br>6 指標 + 問題清單"},
+  {id:"B", code:"MODULE B", short:"分流", eyebrow:"模組 B · 分流", title:"接下來怎麼處理?",
+   lede:"依 readiness score 與問題清單,選擇就地梳理或補齊後重評估。",
+   rd:"<b>模組 B</b><br>依分數建議路徑<br>Not Ready 提示風險"},
+  {id:"C1", code:"MODULE C1", short:"梳理", eyebrow:"模組 C1 · 以現況梳理", title:"人工確認與批次規則",
+   lede:"針對偵測到的缺漏、格式、重複與結構問題,逐項決定處理方式。全程寫入 cleaning log。",
+   rd:"<b>模組 C1</b><br>批次規則 + 人工確認<br>保留 cleaning log"},
+  {id:"D", code:"MODULE D", short:"產出", eyebrow:"模組 D · 產出", title:"梳理後資料集",
+   lede:"輸出 refined dataset、PDF 報告與 cleaning log。呈現前後變化,但不承諾資料絕對正確。",
+   rd:"<b>模組 D</b><br>refined Excel / PDF<br>+ cleaning log"},
+  {id:"E", code:"MODULE E", short:"存證", eyebrow:"模組 E · Evidence", title:"Quantum-Safe Evidence",
+   lede:"對資料指紋、版本與處理紀錄建立可查驗的 evidence record。原始資料不上鏈。",
+   rd:"<b>模組 E</b><br>僅上鏈資料指紋<br>Demo = 視覺化展示"},
+  {id:"F", code:"MODULE F", short:"問答", eyebrow:"模組 F · 前後對比", title:"問同一個問題,比較前後",
+   lede:"左右並排:原始資料 vs 梳理後資料。資料不足時系統明說,不硬答。",
+   rd:"<b>模組 F</b><br>串接 LLM<br>附資料依據 / guardrail"}
+];
+
+const SAMPLES = [
+  {k:"sales", label:"翔立光_業績訂單", file:"翔立光_業績原始資料.xlsx", rows:"2,043", cols:"11", note:"方法論來源案例"},
+  {k:"inv", label:"倉儲_庫存盤點", file:"庫存盤點_2026Q1.xlsx", rows:"1,580", cols:"8", note:"驗證通用性"},
+  {k:"bom", label:"產線_BOM 表", file:"產品BOM_v3.xlsx", rows:"940", cols:"14", note:"驗證通用性"}
+];
+
+const METRICS = [
+  {t:"列完整度", e:"Row Completeness", pct:34, sev:"high", detail:"每列已填欄位數 / 缺漏比例"},
+  {t:"欄位完整度", e:"Column Completeness", pct:41, sev:"high", detail:"各欄 missing rate"},
+  {t:"格式一致性", e:"Format Consistency", pct:52, sev:"med", detail:"日期 / 數字 / 單位 / 代碼"},
+  {t:"重複與近似", e:"Duplicate / Similar", pct:67, sev:"med", detail:"重複列、近似名稱與代碼"},
+  {t:"表格結構品質", e:"Table Structure", pct:58, sev:"med", detail:"合併格、多層標題、小計列"},
+  {t:"AI 問答可用性", e:"AI Query Readiness", pct:38, sev:"high", detail:"識別欄 / 時間欄 / 分類欄"}
+];
+
+const ISSUES = [
+  {sev:"high", t:"欄位大量缺漏", tag:"high", d:"「毛利」「業務員」「成交日期」三欄缺漏率超過 40%。", c:"1,420 列受影響"},
+  {sev:"med", t:"日期格式不一致", tag:"med", d:"同欄混用 2024/1/5、2024-01-05、113.1.5 三種格式。", c:"512 列"},
+  {sev:"med", t:"疑似重複客戶名", tag:"med", d:"ABC Co. / ABC Company / ABC 公司 被視為不同客戶。", c:"38 組"},
+  {sev:"low", t:"表格結構問題", tag:"low", d:"偵測到小計列與合併儲存格混在資料區。", c:"6 處"}
+];
+
+const ROWS = [
+  {id:"#0017", issue:"缺「毛利」", def:"fill"},
+  {id:"#0092", issue:"缺「業務員」", def:"del"},
+  {id:"#0145", issue:"日期格式異常", def:"fill"},
+  {id:"#0201", issue:"多欄空缺", def:"del"},
+  {id:"#0233", issue:"疑似重複列", def:"del"}
+];
+
+const QA = [
+  {q:"2023 年哪個業務的業績最高?",
+   raw:"資料中「業務員」欄位缺漏率高,且部分姓名格式不一致,無法可靠彙總。僅能列出零散紀錄。",
+   guard:"資料不足:缺少完整「業務員」與「成交金額」對應,無法回答此問題。",
+   refined:"2023 年業績最高為「林○成」,全年 NT$ 4,820,000,較次高者高出 18%。",
+   rawsrc:"依據 612 / 2043 列有效", refsrc:"依據 218 / 218 列有效"},
+  {q:"哪一年的整體毛利最好?",
+   raw:"「毛利」欄位超過 60% 為空,無法計算年度毛利總和。",
+   guard:"資料不足:缺少「毛利」欄位值,無法比較年度毛利。",
+   refined:"2024 年毛利率最佳,平均 31.2%,較 2023 年提升 4.1 個百分點。",
+   rawsrc:"依據 780 / 2043 列有效", refsrc:"依據 218 / 218 列有效"},
+  {q:"前三大客戶是誰?",
+   raw:"客戶名稱存在多種寫法(ABC Co. / ABC Company),統計會被拆散,結果不準。",
+   guard:"資料品質警告:客戶名未正規化,統計可能失真。",
+   refined:"前三大客戶:宏達精密、台基電子、永豐工業,合計佔營收 47%。",
+   rawsrc:"名稱未正規化", refsrc:"依據正規化後客戶主檔"}
+];
+
+let cur = 0;
+let chosenSample = "sales";
+let rowChoices = ROWS.map(r=>r.def);
+let qaSel = 0;
+let cleaned = false;
+
+const $ = s=>document.querySelector(s);
+const body = $("#s-body");
+
+function renderStepper(){
+  const el = $("#stepper"); el.innerHTML = "";
+  STEPS.forEach((s,i)=>{
+    const d = document.createElement("div");
+    d.className = "step" + (i===cur?" active":"") + (i<cur?" done":"");
+    d.innerHTML = `<div class="num">${i<cur?'✓':i+1}</div><div class="lbl">${s.short}<small>${s.id}</small></div>`;
+    el.appendChild(d);
+    if(i<STEPS.length-1){const b=document.createElement("div");b.className="bar";el.appendChild(b);}
+  });
+}
+
+function gaugeSVG(score){
+  const r=58, c=2*Math.PI*r, off=c*(1-score/100);
+  const col = score>=80?'var(--green)':score>=60?'var(--amber)':'var(--rose)';
+  return `<svg width="140" height="140" viewBox="0 0 140 140">
+    <circle cx="70" cy="70" r="${r}" fill="none" stroke="var(--line-soft)" stroke-width="11"/>
+    <circle cx="70" cy="70" r="${r}" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}"/>
+  </svg>`;
+}
+
+function render(){
+  const s = STEPS[cur];
+  renderStepper();
+  $("#s-eyebrow").textContent = s.code;
+  $("#s-title").textContent = s.title;
+  $("#s-lede").textContent = s.lede;
+  $("#s-rd").innerHTML = s.rd;
+  $("#btn-prev").style.visibility = cur===0?"hidden":"visible";
+  $("#btn-next").textContent = cur===STEPS.length-1 ? "重新開始 ↻" : "下一步 →";
+  $("#foot-hint").textContent = `${cur+1} / ${STEPS.length}`;
+  body.innerHTML = VIEWS[s.id]();
+  if(s.id==="D") setTimeout(()=>{const pf=$("#pf");if(pf)pf.style.width="100%";},120);
+  bindBody(s.id);
+}
+
+const VIEWS = {
+  A0:()=>`
+    <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-style:dashed">
+      <div style="font-size:22px">🛡️</div>
+      <div><div style="font-weight:650;margin-bottom:3px">AICM AI 資安成熟度問卷</div>
+      <div class="muted" style="font-size:13px">獨立平台。可先評估貴公司 AI 資安現況,或略過直接試用梳理工具。</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;border-color:var(--accent);background:var(--accent-soft)">
+      <div style="display:flex;gap:14px;align-items:center">
+        <div style="width:46px;height:46px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px">📊</div>
+        <div style="flex:1"><div style="font-weight:650;font-size:16px">Excel 梳理小工具</div>
+        <div style="font-size:13px;color:#1c4e7a">上傳 Excel → 評估 readiness → 梳理 → evidence 存證 → AI 前後對比問答。</div></div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:13px;margin-top:18px;text-align:center">點「下一步」開始體驗工具動線。</p>`,
+
+  A:()=>`
+    <div class="drop"><div class="ic">⬆</div><h3>拖入或選擇 Excel 檔</h3><p class="mono">支援 xlsx / xls / csv · 不限資料類型</p></div>
+    <p class="muted" style="font-size:12.5px;margin-top:14px">Demo 提供三份示範資料,任選一份(預設為翔立光案):</p>
+    <div class="sample-pick" id="samples">
+      ${SAMPLES.map(s=>`<button data-k="${s.k}" class="${s.k===chosenSample?'sel':''}">${s.label} · ${s.rows} 列</button>`).join("")}
+    </div>
+    <div id="filechip"></div>`,
+
+  A2:()=>{
+    const sample = SAMPLES.find(s=>s.k===chosenSample);
+    return `
+    <div class="score-wrap">
+      <div class="gauge">${gaugeSVG(47)}<div class="read"><div class="n">47</div><div class="of">/ 100</div></div></div>
+      <div style="flex:1">
+        <span class="pill not"><span class="dot" style="background:var(--rose)"></span>Not Ready</span>
+        <p style="margin-top:11px;font-size:14px;color:var(--ink-soft)">這份 <b>${sample.file}</b>(${sample.rows} 列 / ${sample.cols} 欄)目前不建議直接進入 AI 問答。主要受欄位缺漏與 AI 問答可用性拖累。</p>
+        <div class="grid g3" style="margin-top:14px">
+          <div class="stat"><div class="k">High readiness</div><div class="v" style="color:var(--green)">238</div></div>
+          <div class="stat"><div class="k">Medium</div><div class="v" style="color:var(--amber)">611</div></div>
+          <div class="stat"><div class="k">Low</div><div class="v" style="color:var(--rose)">1,194</div></div>
+        </div>
+      </div>
+    </div>
+    <h3 style="font-size:14px;font-weight:650;margin:24px 0 8px">六項評估指標</h3>
+    <div>${METRICS.map(m=>`
+      <div class="metric">
+        <div class="mname"><div class="t">${m.t}</div><div class="e">${m.e}</div></div>
+        <div class="track"><div class="fill" style="width:${m.pct}%;background:${m.sev==='high'?'var(--rose)':m.sev==='med'?'var(--amber)':'var(--accent)'}"></div></div>
+        <div class="mscore">${m.pct}% · ${m.detail}</div>
+      </div>`).join("")}</div>
+    <h3 style="font-size:14px;font-weight:650;margin:24px 0 10px">問題清單(附處理建議)</h3>
+    ${ISSUES.map(i=>`
+      <div class="issue"><div class="sev sev-${i.sev}"></div>
+        <div class="ibody"><div class="it">${i.t} <span class="tag ${i.tag}">${i.tag.toUpperCase()}</span></div>
+        <div class="id">${i.d}</div></div>
+        <div class="icount">${i.c}</div></div>`).join("")}
+    <div class="note"><span class="ni">ⓘ Best Row Benchmark</span><span>系統找出欄位最完整的一列作為「結構參考」,但不作為唯一評分依據,也不代表業務正確性。</span></div>`;
+  },
+
+  B:()=>`
+    <div class="fork">
+      <div class="opt" data-go="C1"><div class="oic">✎</div><h3>以現況梳理</h3>
+        <p>針對偵測到的缺漏、格式、重複與結構問題,用批次規則加人工確認就地處理。</p>
+        <div class="rec">▸ 適合想立即看到成果</div></div>
+      <div class="opt" data-go="C1"><div class="oic">↻</div><h3>補齊 / 修正後再上傳</h3>
+        <p>依問題清單補齊高風險缺漏或修正結構,重新上傳後再次評估 readiness。</p>
+        <div class="rec">▸ 適合資料能回源補強</div></div>
+    </div>
+    <div class="note" style="margin-top:20px"><span class="ni">ⓘ</span><span>目前為 <b>Not Ready (47)</b>。系統會提示風險,但不以「完全無空缺」作為唯一阻擋條件 — 由使用者決定路徑。</span></div>`,
+
+  C1:()=>`
+    <p class="muted" style="font-size:13px;margin-bottom:14px">逐項決定處理方式,或套用批次規則。每個動作都會寫入 cleaning log。</p>
+    <table class="ctable">
+      <thead><tr><th>資料列</th><th>偵測問題</th><th style="text-align:right">處理方式</th></tr></thead>
+      <tbody id="rowbody"></tbody>
+    </table>
+    <div class="card" style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span class="mono muted" style="font-size:12px">批次規則:</span>
+      <span class="tag low">統一日期格式</span><span class="tag low">移除重複列</span>
+      <span class="tag low">客戶名正規化</span><span class="tag low">移除小計列</span>
+    </div>`,
+
+  D:()=>`
+    <div style="text-align:center;padding:8px 0 4px"><div style="font-size:30px">✓</div>
+    <h3 style="font-size:17px;font-weight:650;margin-top:6px">梳理完成</h3></div>
+    <div class="prog"><div class="pf" id="pf"></div></div>
+    <div class="grid g3">
+      <div class="stat"><div class="k">梳理前</div><div class="v">2,043 <small>列</small></div></div>
+      <div class="stat"><div class="k">梳理後</div><div class="v" style="color:var(--green)">218 <small>列</small></div></div>
+      <div class="stat"><div class="k">Readiness</div><div class="v" style="color:var(--green)">91 <small>/100</small></div></div>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin:16px 0 18px;text-align:center">已依規則篩除、補正與正規化。輸出僅保證「依設定規則處理」,不保證資料內容絕對正確。</p>
+    <div class="grid g3">
+      <div class="card" style="text-align:center"><div style="font-size:20px">📗</div><div style="font-weight:600;font-size:13.5px;margin-top:5px">refined.xlsx</div><div class="mono muted" style="font-size:11px">梳理後資料</div></div>
+      <div class="card" style="text-align:center"><div style="font-size:20px">📄</div><div style="font-weight:600;font-size:13.5px;margin-top:5px">report.pdf</div><div class="mono muted" style="font-size:11px">readiness 報告</div></div>
+      <div class="card" style="text-align:center"><div style="font-size:20px">🧾</div><div style="font-weight:600;font-size:13.5px;margin-top:5px">cleaning.log</div><div class="mono muted" style="font-size:11px">處理紀錄</div></div>
+    </div>`,
+
+  E:()=>`
+    <div class="ev-card">
+      <div class="ev-top"><div class="shield">🛡</div><h3>Quantum-Safe Evidence Recorded</h3>
+        <div class="en">A cryptographic fingerprint of the refined dataset has been recorded.<br>No sensitive data is stored on-chain. Integrity can be independently verified.</div></div>
+      <div class="ev-rows">
+        <div class="ev-row"><span class="k">Dataset hash</span><span class="v">9f2a c4e1 7b08 d3f6 … e09c</span></div>
+        <div class="ev-row"><span class="k">Cleaning log hash</span><span class="v">a17d 55be 2c90 … 4471</span></div>
+        <div class="ev-row"><span class="k">Timestamp</span><span class="v">2026-06-10 14:32:07 UTC</span></div>
+        <div class="ev-row"><span class="k">Tool / rule version</span><span class="v">excel-tool 0.2 / rules 0.2.3</span></div>
+        <div class="ev-row"><span class="k">Record ID</span><span class="v">SAFE-EVD-002187</span></div>
+        <div class="ev-row"><span class="k">Signature status</span><span class="v" style="color:var(--green)">● demo · pending real chain</span></div>
+      </div>
+      <div class="ev-flags">
+        <span class="ef">✓ No sensitive data on-chain</span>
+        <span class="ef">✓ Integrity verifiable</span>
+        <span class="ef">⚠ Demo Mode</span>
+      </div>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin-top:16px;text-align:center">正式版需定義後量子簽章機制與查驗入口;Demo 版明確標示為 Demo Mode,不宣稱正式量子安全驗證已完成。</p>`,
+
+  F:()=>{
+    const q = QA[qaSel];
+    return `
+    <div class="qa-bar" id="qabar">
+      ${QA.map((x,i)=>`<button data-i="${i}" class="${i===qaSel?'sel':''}">${x.q}</button>`).join("")}
+    </div>
+    <div class="qa-q"><span class="who">USER ›</span> ${q.q}</div>
+    <div class="compare">
+      <div class="pane raw"><div class="ph"><span>原始資料</span><span>readiness 47</span></div>
+        <div class="pb">${q.raw}<div class="guard">⚠ ${q.guard}</div>
+        <div class="src">${q.rawsrc}</div></div></div>
+      <div class="pane refined"><div class="ph"><span>梳理後資料</span><span>readiness 91</span></div>
+        <div class="pb">${q.refined}<div class="src">${q.refsrc}</div></div></div>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin-top:16px;text-align:center">資料不足時系統明說缺什麼,不硬答。這就是資料品質的差別 — 也是整個平台要證明的事。</p>`;
+  }
+};
+
+function bindBody(id){
+  if(id==="A"){
+    body.querySelectorAll("#samples button").forEach(b=>{
+      b.onclick=()=>{chosenSample=b.dataset.k;render();};
+    });
+    const s=SAMPLES.find(x=>x.k===chosenSample);
+    $("#filechip").innerHTML=`<div class="file-chip"><div class="fic">XLS</div>
+      <div class="meta"><div class="nm">${s.file}</div><div class="ds">${s.rows} 列 · ${s.cols} 欄 · 已載入 · ${s.note}</div></div>
+      <span class="pill cond"><span class="dot" style="background:var(--amber)"></span>待評估</span></div>`;
+  }
+  if(id==="B"){
+    body.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{cur=STEPS.findIndex(s=>s.id==="C1");render();});
+  }
+  if(id==="C1"){
+    const tb=$("#rowbody");
+    tb.innerHTML=ROWS.map((r,i)=>`<tr><td class="rid">${r.id}</td><td>${r.issue}</td>
+      <td style="text-align:right"><div class="seg" data-row="${i}">
+        <button data-v="fill" class="${rowChoices[i]==='fill'?'on':''}">填值</button>
+        <button data-v="del" class="del ${rowChoices[i]==='del'?'on del':''}">刪除</button>
+      </div></td></tr>`).join("");
+    tb.querySelectorAll(".seg").forEach(seg=>{
+      seg.querySelectorAll("button").forEach(btn=>{
+        btn.onclick=()=>{rowChoices[seg.dataset.row]=btn.dataset.v;cur=cur;render();};
+      });
+    });
+  }
+  if(id==="F"){
+    body.querySelectorAll("#qabar button").forEach(b=>b.onclick=()=>{qaSel=+b.dataset.i;render();});
+  }
+}
+
+$("#btn-next").onclick=()=>{
+  if(cur===STEPS.length-1){cur=0;chosenSample="sales";qaSel=0;render();return;}
+  cur++;render();
+};
+$("#btn-prev").onclick=()=>{if(cur>0){cur--;render();}};
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight")$("#btn-next").click();
+  if(e.key==="ArrowLeft"&&cur>0)$("#btn-prev").click();
+});
+
+render();
+</script>
+</body>
+</html>

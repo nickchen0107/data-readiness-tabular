@@ -1,0 +1,61 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3080:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://safeai:safeai_secret@db:5432/safeai?sslmode=disable
+      - JWT_SECRET=${JWT_SECRET:-default_dev_secret_change_in_production}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - BLOCKCHAIN_API_URL=${BLOCKCHAIN_API_URL:-http://localhost:9000}
+    volumes:
+      - upload_data:/app/uploads
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=safeai
+      - POSTGRES_USER=safeai
+      - POSTGRES_PASSWORD=safeai_secret
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safeai -d safeai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  upload_data:
+    driver: local
+  pg_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

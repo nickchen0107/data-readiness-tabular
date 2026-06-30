@@ -1,0 +1,97 @@
+# ============================================================
+# SAFE-AI Excel 梳理小工具 — 系統配置檔
+# ============================================================
+# 此檔案用於集中管理系統設定，包含 LLM、區塊鏈、資料庫等配置
+# 環境變數優先於此檔案中的設定值（方便 Docker 部署覆蓋）
+# ============================================================
+
+# --- 伺服器設定 ---
+server:
+  port: "8080"
+  mode: "release"  # debug | release | test
+
+# --- 資料庫設定 ---
+database:
+  url: "postgres://safeai:safeai_secret@localhost:5432/safeai?sslmode=disable"
+  max_connections: 20
+  min_connections: 5
+  max_conn_lifetime: "1h"
+  max_conn_idle_time: "30m"
+
+# --- JWT 認證設定 ---
+auth:
+  jwt_secret: "CHANGE_ME_IN_PRODUCTION"
+  jwt_expiry: "24h"
+  rate_limit:
+    max_attempts: 5
+    window: "15m"
+    lockout_duration: "15m"
+
+# --- 檔案上傳設定 ---
+upload:
+  directory: "/app/uploads"
+  max_file_size_mb: 50
+  max_row_count: 100000
+  allowed_formats:
+    - "xlsx"
+    - "csv"
+
+# --- AI Data Readiness 評估設定 ---
+assessment:
+  # 六項指標預設權重（總和需 = 1.0）
+  default_weights:
+    row_completeness: 0.20
+    column_completeness: 0.20
+    format_consistency: 0.15
+    duplicate_similar: 0.10
+    table_structure: 0.15
+    ai_query_readiness: 0.20
+  # Levenshtein 近似比對設定
+  levenshtein:
+    threshold: 2
+    max_columns: 5
+    min_cardinality_pct: 0.05
+    max_cardinality_pct: 0.80
+  # 分級門檻
+  grading:
+    ready_threshold: 80.0
+    conditional_threshold: 60.0
+
+# --- LLM 設定（Gemini API）---
+llm:
+  provider: "gemini"
+  api_key: ""  # 請設定環境變數 GEMINI_API_KEY 或在此填入
+  model: "gemini-2.0-flash"
+  timeout: "30s"
+  max_retries: 1
+  # 資料不足防護：欄位缺漏率超過此閾值則不呼叫 LLM
+  data_insufficiency_threshold: 0.50
+  # Prompt 設定
+  prompt:
+    system_instruction: |
+      你是一位資料分析師，根據提供的結構化資料回答問題。
+      請使用繁體中文回答。回答時請具體引用資料數值。
+      若資料不足以回答問題，請明確說明缺少哪些資料，不要猜測。
+    max_data_rows: 500  # 注入 prompt 的最大資料列數
+
+# --- 區塊鏈 Evidence 存證設定 ---
+blockchain:
+  api_url: "http://localhost:9000"
+  timeout: "10s"
+  # 當區塊鏈不可用時的行為
+  fallback_mode: "demo"  # demo | error
+  tool_version: "excel-tool-0.1"
+  rule_version: "rules-0.1.0"
+
+# --- PDF 報告設定 ---
+report:
+  # 品牌色系
+  colors:
+    primary: "#1a1f2e"
+    accent: "#2b6cb0"
+    green: "#15803d"
+    amber: "#b45309"
+    rose: "#b42318"
+  # 字體（需嵌入中文字體）
+  font_path: "/app/assets/fonts/NotoSansTC-Regular.ttf"
+  font_bold_path: "/app/assets/fonts/NotoSansTC-Bold.ttf"

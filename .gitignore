@@ -1,0 +1,40 @@
+# Dependencies
+frontend/node_modules/
+backend/vendor/
+
+# Build outputs
+frontend/dist/
+backend/server
+backend/*.exe
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker volumes / data
+pgdata/
+uploads/
+
+# Logs
+*.log
+*.pid
+
+# Test artifacts
+coverage/
+frontend/coverage/
+backend/internal/assessment/testdata/rapid/
+
+# Temporary
+tmp/
+*.tmp
