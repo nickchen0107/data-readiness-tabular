@@ -21,7 +21,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgres://safeai:safeai_secret@db:5432/safeai?sslmode=disable
+      - DATABASE_URL=postgres://safeai:${POSTGRES_PASSWORD:-safeai_secret}@db:5432/safeai?sslmode=disable
       - JWT_SECRET=${JWT_SECRET:-default_dev_secret_change_in_production}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - BLOCKCHAIN_API_URL=${BLOCKCHAIN_API_URL:-http://localhost:9000}
@@ -33,12 +33,10 @@ services:
 
   db:
     image: postgres:16
-    ports:
-      - "5433:5432"
     environment:
       - POSTGRES_DB=safeai
       - POSTGRES_USER=safeai
-      - POSTGRES_PASSWORD=safeai_secret
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-safeai_secret}
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
