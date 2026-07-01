@@ -15,16 +15,17 @@ var (
 )
 
 // GenerateToken 產生 JWT token
-// Claims: sub = userID, exp = now + expiry, iat = now
+// Claims: sub = userID, role = role, exp = now + expiry, iat = now
 // 使用 HS256 簽名演算法
-func GenerateToken(userID uuid.UUID, secret string, expiry time.Duration) (string, time.Time, error) {
+func GenerateToken(userID uuid.UUID, role, secret string, expiry time.Duration) (string, time.Time, error) {
 	now := time.Now()
 	expiresAt := now.Add(expiry)
 
 	claims := jwt.MapClaims{
-		"sub": userID.String(),
-		"exp": jwt.NewNumericDate(expiresAt),
-		"iat": jwt.NewNumericDate(now),
+		"sub":  userID.String(),
+		"role": role,
+		"exp":  jwt.NewNumericDate(expiresAt),
+		"iat":  jwt.NewNumericDate(now),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -36,8 +37,8 @@ func GenerateToken(userID uuid.UUID, secret string, expiry time.Duration) (strin
 	return tokenString, expiresAt, nil
 }
 
-// ValidateToken 驗證 JWT token 並回傳 userID
-func ValidateToken(tokenString, secret string) (uuid.UUID, error) {
+// ValidateToken 驗證 JWT token 並回傳 userID 與 role
+func ValidateToken(tokenString, secret string) (uuid.UUID, string, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// 確認使用 HS256 簽名
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -47,29 +48,34 @@ func ValidateToken(tokenString, secret string) (uuid.UUID, error) {
 	})
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return uuid.Nil, ErrExpiredToken
+			return uuid.Nil, "", ErrExpiredToken
 		}
-		return uuid.Nil, ErrInvalidToken
+		return uuid.Nil, "", ErrInvalidToken
 	}
 
 	if !token.Valid {
-		return uuid.Nil, ErrInvalidToken
+		return uuid.Nil, "", ErrInvalidToken
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return uuid.Nil, ErrInvalidToken
+		return uuid.Nil, "", ErrInvalidToken
 	}
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		return uuid.Nil, ErrInvalidToken
+		return uuid.Nil, "", ErrInvalidToken
 	}
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
-		return uuid.Nil, ErrInvalidToken
+		return uuid.Nil, "", ErrInvalidToken
 	}
 
-	return userID, nil
+	role, _ := claims["role"].(string)
+	if role == "" {
+		role = "user"
+	}
+
+	return userID, role, nil
 }

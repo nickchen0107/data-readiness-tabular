@@ -38,7 +38,7 @@ func JWTAuth(secret string, blacklist *auth.TokenBlacklist) gin.HandlerFunc {
 		}
 
 		// 4. 驗證 token 並取得 userID
-		userID, err := auth.ValidateToken(tokenString, secret)
+		userID, role, err := auth.ValidateToken(tokenString, secret)
 		if err != nil {
 			switch err {
 			case auth.ErrExpiredToken:
@@ -52,8 +52,9 @@ func JWTAuth(secret string, blacklist *auth.TokenBlacklist) gin.HandlerFunc {
 			}
 		}
 
-		// 5. 設定 user_id 與 raw token 至 context
+		// 5. 設定 user_id、user_role 與 raw token 至 context
 		c.Set("user_id", userID)
+		c.Set("user_role", role)
 		c.Set("token", tokenString)
 
 		// 6. 繼續處理

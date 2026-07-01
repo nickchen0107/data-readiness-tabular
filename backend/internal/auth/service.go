@@ -68,7 +68,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*TokenResponse, 
 	}
 
 	// 3. 產生 JWT
-	token, expiresAt, err := GenerateToken(user.ID, s.jwtSecret, s.jwtExpiry)
+	token, expiresAt, err := GenerateToken(user.ID, user.Role, s.jwtSecret, s.jwtExpiry)
 	if err != nil {
 		return nil, err
 	}

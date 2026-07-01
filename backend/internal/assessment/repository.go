@@ -171,6 +171,57 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*Assessment, er
 	return &a, nil
 }
 
+// ListByUserID 分頁取得指定使用者的評估記錄（依 created_at 降序），回傳記錄及總筆數
+func (r *Repository) ListByUserID(ctx context.Context, userID uuid.UUID, offset, limit int) ([]Assessment, int, error) {
+	// 計算總筆數
+	var total int
+	err := r.pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM assessments WHERE user_id = $1`,
+		userID,
+	).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 查詢分頁結果
+	rows, err := r.pool.Query(ctx,
+		`SELECT id, upload_id, total_score, status, column_details, created_at
+		 FROM assessments WHERE user_id = $1
+		 ORDER BY created_at DESC
+		 LIMIT $2 OFFSET $3`,
+		userID, limit, offset,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var assessments []Assessment
+	for rows.Next() {
+		var a Assessment
+		var columnDetailsJSON []byte
+		if err := rows.Scan(&a.ID, &a.UploadID, &a.TotalScore, &a.Status, &columnDetailsJSON, &a.CreatedAt); err != nil {
+			return nil, 0, err
+		}
+		// 解析 column_details 中的 filename
+		if columnDetailsJSON != nil {
+			type combinedDetails struct {
+				Filename string `json:"filename"`
+			}
+			var combined combinedDetails
+			if err := json.Unmarshal(columnDetailsJSON, &combined); err == nil {
+				a.Filename = combined.Filename
+			}
+		}
+		assessments = append(assessments, a)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return assessments, total, nil
+}
+
 // SettingsRepository 處理系統設定的資料庫操作
 type SettingsRepository struct {
 	pool *pgxpool.Pool

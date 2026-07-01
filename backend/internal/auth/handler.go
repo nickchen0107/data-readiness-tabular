@@ -145,6 +145,7 @@ func (h *Handler) GetMe(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"id":         user.ID,
 		"email":      user.Email,
+		"role":       user.Role,
 		"created_at": user.CreatedAt,
 	})
 }

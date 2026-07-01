@@ -18,7 +18,8 @@ func setupTestRouter(secret string, blacklist *auth.TokenBlacklist) *gin.Engine 
 	r.Use(JWTAuth(secret, blacklist))
 	r.GET("/protected", func(c *gin.Context) {
 		userID, _ := c.Get("user_id")
-		c.JSON(http.StatusOK, gin.H{"user_id": userID})
+		role, _ := c.Get("user_role")
+		c.JSON(http.StatusOK, gin.H{"user_id": userID, "role": role})
 	})
 	return r
 }
@@ -55,7 +56,7 @@ func TestJWTAuth_BlacklistedToken(t *testing.T) {
 
 	// 產生 valid token
 	userID := uuid.New()
-	token, _, _ := auth.GenerateToken(userID, secret, 24*time.Hour)
+	token, _, _ := auth.GenerateToken(userID, "user", secret, 24*time.Hour)
 
 	// 加入黑名單
 	bl.Add(token, time.Now().Add(24*time.Hour))
@@ -75,7 +76,7 @@ func TestJWTAuth_ValidToken(t *testing.T) {
 	r := setupTestRouter(secret, bl)
 
 	userID := uuid.New()
-	token, _, _ := auth.GenerateToken(userID, secret, 24*time.Hour)
+	token, _, _ := auth.GenerateToken(userID, "user", secret, 24*time.Hour)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/protected", nil)
@@ -86,6 +87,23 @@ func TestJWTAuth_ValidToken(t *testing.T) {
 	assert.Contains(t, w.Body.String(), userID.String())
 }
 
+func TestJWTAuth_ValidToken_SetsRole(t *testing.T) {
+	secret := "test-secret"
+	bl := auth.NewTokenBlacklist()
+	r := setupTestRouter(secret, bl)
+
+	userID := uuid.New()
+	token, _, _ := auth.GenerateToken(userID, "admin", secret, 24*time.Hour)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/protected", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "admin")
+}
+
 func TestJWTAuth_ExpiredToken(t *testing.T) {
 	secret := "test-secret"
 	bl := auth.NewTokenBlacklist()
@@ -93,7 +111,7 @@ func TestJWTAuth_ExpiredToken(t *testing.T) {
 
 	userID := uuid.New()
 	// 產生已過期的 token（使用負數 duration）
-	token, _, _ := auth.GenerateToken(userID, secret, -1*time.Hour)
+	token, _, _ := auth.GenerateToken(userID, "user", secret, -1*time.Hour)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/protected", nil)
@@ -109,7 +127,7 @@ func TestJWTAuth_WrongSecret(t *testing.T) {
 	r := setupTestRouter("correct-secret", bl)
 
 	userID := uuid.New()
-	token, _, _ := auth.GenerateToken(userID, "wrong-secret", 24*time.Hour)
+	token, _, _ := auth.GenerateToken(userID, "user", "wrong-secret", 24*time.Hour)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/protected", nil)

@@ -29,10 +29,10 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 func (r *Repository) CreateUser(ctx context.Context, email, passwordHash string) (*User, error) {
 	var user User
 	err := r.pool.QueryRow(ctx,
-		`INSERT INTO users (email, password_hash) VALUES ($1, $2)
-		 RETURNING id, email, password_hash, created_at, updated_at`,
+		`INSERT INTO users (email, password_hash, role) VALUES ($1, $2, 'user')
+		 RETURNING id, email, password_hash, role, created_at, updated_at`,
 		email, passwordHash,
-	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		// Check for unique constraint violation on email
 		if isDuplicateKeyError(err) {
@@ -47,9 +47,9 @@ func (r *Repository) CreateUser(ctx context.Context, email, passwordHash string)
 func (r *Repository) GetByEmail(ctx context.Context, email string) (*User, error) {
 	var user User
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, email, password_hash, created_at, updated_at FROM users WHERE email = $1`,
+		`SELECT id, email, password_hash, role, created_at, updated_at FROM users WHERE email = $1`,
 		email,
-	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -63,9 +63,9 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (*User, error
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 	var user User
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, email, password_hash, created_at, updated_at FROM users WHERE id = $1`,
+		`SELECT id, email, password_hash, role, created_at, updated_at FROM users WHERE id = $1`,
 		id,
-	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
+	).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Role, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -73,6 +73,40 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+// ListAll 分頁取得所有使用者，回傳使用者列表及總筆數
+func (r *Repository) ListAll(ctx context.Context, offset, limit int) ([]User, int, error) {
+	// 計算總筆數
+	var total int
+	err := r.pool.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 查詢分頁結果
+	rows, err := r.pool.Query(ctx,
+		`SELECT id, email, password_hash, role, created_at, updated_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+		limit, offset,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var u User
+		if err := rows.Scan(&u.ID, &u.Email, &u.PasswordHash, &u.Role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		users = append(users, u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }
 
 // isDuplicateKeyError 檢查是否為 unique constraint violation (PostgreSQL error code 23505)

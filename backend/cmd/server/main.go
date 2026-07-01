@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/safe-ai/excel-brushing-tool/internal/admin"
 	"github.com/safe-ai/excel-brushing-tool/internal/assessment"
 	"github.com/safe-ai/excel-brushing-tool/internal/auth"
 	"github.com/safe-ai/excel-brushing-tool/internal/cleaning"
@@ -19,7 +21,9 @@ import (
 	"github.com/safe-ai/excel-brushing-tool/internal/export"
 	"github.com/safe-ai/excel-brushing-tool/internal/middleware"
 	"github.com/safe-ai/excel-brushing-tool/internal/qa"
+	"github.com/safe-ai/excel-brushing-tool/internal/quota"
 	"github.com/safe-ai/excel-brushing-tool/internal/settings"
+	"github.com/safe-ai/excel-brushing-tool/internal/translation"
 	"github.com/safe-ai/excel-brushing-tool/internal/upload"
 	"github.com/safe-ai/excel-brushing-tool/migrations"
 	"github.com/safe-ai/excel-brushing-tool/pkg/config"
@@ -115,6 +119,21 @@ func main() {
 	// Settings 模組初始化
 	settingsHandler := settings.NewHandler(pool)
 
+	// Quota 模組初始化
+	quotaRepo := quota.NewRepository(pool)
+	quotaSvc := quota.NewService(quotaRepo)
+
+	// Translation 模組初始化
+	transRepo := translation.NewRepository(pool)
+	transSvc := translation.NewService(transRepo)
+	transHandler := translation.NewHandler(transSvc)
+
+	// Admin 模組初始化
+	adminHandler := admin.NewHandler(authRepo, quotaSvc, quotaRepo, transSvc, transRepo, assessRepo)
+
+	// Public translation route（不需要認證）
+	r.GET("/api/translations/:locale", transHandler.GetTranslations)
+
 	// Protected routes（需要 JWT 認證）
 	protected := r.Group("/api")
 	protected.Use(middleware.JWTAuth(cfg.JWTSecret, tokenBlacklist))
@@ -160,6 +179,35 @@ func main() {
 		// Settings routes
 		protected.GET("/settings/weights", settingsHandler.GetWeights)
 		protected.PUT("/settings/weights", settingsHandler.UpdateWeights)
+
+		// Quota routes（一般使用者可查看自己的配額）
+		protected.GET("/quota/me", func(c *gin.Context) {
+			userIDVal, _ := c.Get("user_id")
+			userID, ok := userIDVal.(uuid.UUID)
+			if !ok {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "無效的使用者"})
+				return
+			}
+			info, err := quotaSvc.GetUserQuotaInfo(c.Request.Context(), userID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "取得配額資訊失敗"})
+				return
+			}
+			c.JSON(http.StatusOK, info)
+		})
+	}
+
+	// Admin routes（需要 JWT + Admin 權限）
+	adminGroup := r.Group("/api/admin")
+	adminGroup.Use(middleware.JWTAuth(cfg.JWTSecret, tokenBlacklist))
+	adminGroup.Use(middleware.AdminAuth())
+	{
+		adminGroup.GET("/users", adminHandler.ListUsers)
+		adminGroup.GET("/quota", adminHandler.GetQuotaSettings)
+		adminGroup.PUT("/quota", adminHandler.UpdateQuotaSettings)
+		adminGroup.GET("/translations", adminHandler.ListTranslations)
+		adminGroup.PUT("/translations/:id", adminHandler.UpdateTranslation)
+		adminGroup.GET("/assessments", adminHandler.ListAssessments)
 	}
 
 	// 建立 HTTP 伺服器
