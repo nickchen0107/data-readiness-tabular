@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 interface User {
   id: string
   email: string
+  role: 'admin' | 'user'
 }
 
 interface AuthState {
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!state.token) return
     try {
       const res = await apiClient.get('/auth/me')
-      const user: User = { id: res.data.id, email: res.data.email }
+      const user: User = { id: res.data.id, email: res.data.email, role: res.data.role || 'user' }
       localStorage.setItem('user', JSON.stringify(user))
       setState((prev) => ({ ...prev, user, isAuthenticated: true }))
     } catch {
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiClient.get('/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      const user: User = { id: res.data.id, email: res.data.email }
+      const user: User = { id: res.data.id, email: res.data.email, role: res.data.role || 'user' }
       localStorage.setItem('user', JSON.stringify(user))
       setState({ token, user, isAuthenticated: true })
     } catch {

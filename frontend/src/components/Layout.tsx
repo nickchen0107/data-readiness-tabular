@@ -1,23 +1,41 @@
 import { useLocation, useNavigate, Outlet } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
+import { useStepper } from '../contexts/StepperContext'
+import LanguageSwitcher from './LanguageSwitcher'
 
-const STEPS = [
-  { path: '/landing', num: '1', label: '進入', sub: 'Landing' },
-  { path: '/upload', num: '2', label: '上傳', sub: 'Upload' },
-  { path: '/assessment', num: '3', label: '評估', sub: 'Assess' },
-  { path: '/routing', num: '4', label: '分流', sub: 'Route' },
-  { path: '/cleaning', num: '5', label: '梳理', sub: 'Clean' },
-  { path: '/export', num: '6', label: '產出', sub: 'Export' },
-  { path: '/evidence', num: '7', label: '存證', sub: 'Evidence' },
-  { path: '/qa', num: '8', label: '問答', sub: 'QA' },
+const STEP_KEYS = [
+  'stepper.landing',
+  'stepper.upload',
+  'stepper.assess',
+  'stepper.route',
+  'stepper.clean',
+  'stepper.export',
+  'stepper.evidence',
+  'stepper.qa',
+] as const
+
+const STEP_PATHS = [
+  '/landing',
+  '/upload',
+  '/assessment',
+  '/routing',
+  '/cleaning',
+  '/export',
+  '/evidence',
+  '/qa',
 ]
+
+const STEP_SUBS = ['Landing', 'Upload', 'Assess', 'Route', 'Clean', 'Export', 'Evidence', 'QA']
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const { t } = useTranslation()
+  const { canNavigateTo } = useStepper()
   const location = useLocation()
   const navigate = useNavigate()
 
-  const currentStepIndex = STEPS.findIndex((s) => location.pathname.startsWith(s.path))
+  const currentStepIndex = STEP_PATHS.findIndex((p) => location.pathname.startsWith(p))
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -41,21 +59,31 @@ export default function Layout() {
           }}>S</div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
-              SAFE-AI 資料梳理平台
+              {t('header.platform_name')}
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', fontWeight: 500 }}>
-              Excel 梳理小工具 v0.1
+              {t('header.tool_version')}
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {user && user.role === 'admin' && (
+            <button
+              className="btn btn-ghost"
+              onClick={() => navigate('/admin')}
+              style={{ fontSize: 12, padding: '5px 10px' }}
+            >
+              {t('header.admin')}
+            </button>
+          )}
+          <LanguageSwitcher />
           {user && (
             <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>
               {user.email}
             </span>
           )}
           <button className="btn btn-ghost" onClick={logout} style={{ fontSize: 13, padding: '7px 14px' }}>
-            登出
+            {t('btn.logout')}
           </button>
         </div>
       </header>
@@ -71,17 +99,22 @@ export default function Layout() {
         gap: 0,
         overflowX: 'auto',
       }}>
-        {STEPS.map((step, i) => {
+        {STEP_PATHS.map((path, i) => {
           const isActive = i === currentStepIndex
           const isDone = i < currentStepIndex
+          const isDisabled = !canNavigateTo(i)
           return (
-            <div key={step.path} style={{ display: 'flex', alignItems: 'center' }}>
+            <div key={path} style={{ display: 'flex', alignItems: 'center' }}>
               <div
-                onClick={() => navigate(step.path)}
+                onClick={() => {
+                  if (!isDisabled) navigate(path)
+                }}
+                title={isDisabled ? t('nav.stepper_disabled') : undefined}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 9,
-                  paddingRight: 8, whiteSpace: 'nowrap', cursor: 'pointer',
-                  opacity: isActive ? 1 : isDone ? 0.8 : 0.45,
+                  paddingRight: 8, whiteSpace: 'nowrap',
+                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                  opacity: isDisabled ? 0.3 : isActive ? 1 : isDone ? 0.8 : 0.45,
                   transition: 'opacity 0.25s',
                 }}
               >
@@ -93,16 +126,16 @@ export default function Layout() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 12, fontFamily: 'var(--mono)', flexShrink: 0,
                 }}>
-                  {step.num}
+                  {i + 1}
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 550 }}>{step.label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 550 }}>{t(STEP_KEYS[i])}</div>
                   <div style={{ fontSize: 10.5, color: 'var(--ink-faint)', fontWeight: 500, fontFamily: 'var(--mono)' }}>
-                    {step.sub}
+                    {STEP_SUBS[i]}
                   </div>
                 </div>
               </div>
-              {i < STEPS.length - 1 && (
+              {i < STEP_PATHS.length - 1 && (
                 <div style={{ width: 26, height: 1.5, background: 'var(--line)', margin: '0 4px', flexShrink: 0 }} />
               )}
             </div>

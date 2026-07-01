@@ -1,5 +1,6 @@
-import { useState, useRef, type DragEvent, type ChangeEvent } from 'react'
+import { useState, useRef, useEffect, type DragEvent, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 
 interface UploadResult {
@@ -10,7 +11,14 @@ interface UploadResult {
   sheet_names: string[]
 }
 
+interface QuotaInfo {
+  remaining: number
+  max_assessments: number
+  used_count: number
+}
+
 export default function UploadPage() {
+  const { t } = useTranslation()
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -18,8 +26,17 @@ export default function UploadPage() {
   const [selectedSheet, setSelectedSheet] = useState('')
   const [error, setError] = useState('')
   const [assessing, setAssessing] = useState(false)
+  const [quota, setQuota] = useState<QuotaInfo | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    apiClient.get('/quota/me').then((res) => {
+      setQuota(res.data)
+    }).catch(() => {
+      // Quota endpoint not available; allow usage
+    })
+  }, [])
 
   const handleFile = async (file: File) => {
     const validTypes = [
@@ -29,7 +46,7 @@ export default function UploadPage() {
     ]
     const ext = file.name.split('.').pop()?.toLowerCase()
     if (!validTypes.includes(file.type) && ext !== 'xlsx' && ext !== 'csv') {
-      setError('僅支援 .xlsx 或 .csv 格式檔案')
+      setError(t('error.file_format'))
       return
     }
 
@@ -53,7 +70,7 @@ export default function UploadPage() {
       }
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
-      setError(axiosErr.response?.data?.error?.message || '上傳失敗，請稍後再試')
+      setError(axiosErr.response?.data?.error?.message || t('error.upload_failed'))
     } finally {
       setUploading(false)
     }
@@ -84,11 +101,13 @@ export default function UploadPage() {
       navigate('/assessment?id=' + res.data.id)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
-      setError(axiosErr.response?.data?.error?.message || '無法啟動評估')
+      setError(axiosErr.response?.data?.error?.message || t('error.cannot_start_assessment'))
     } finally {
       setAssessing(false)
     }
   }
+
+  const quotaExhausted = quota !== null && quota.remaining === 0
 
   return (
     <div style={{
@@ -105,11 +124,20 @@ export default function UploadPage() {
             fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
           }}>STEP 1</div>
-          <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>上傳檔案</h2>
+          <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>{t('page.upload.title')}</h2>
           <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 5 }}>
-            拖曳或點擊選取 Excel / CSV 檔案，系統將解析後進行品質評估
+            {t('page.upload.desc')}
           </p>
         </div>
+        {quota !== null && (
+          <div style={{
+            fontSize: 12, color: 'var(--ink-faint)', fontFamily: 'var(--mono)',
+            background: 'var(--panel)', padding: '6px 12px', borderRadius: 8,
+            whiteSpace: 'nowrap',
+          }}>
+            {t('admin.remaining_quota')}: {quota.remaining}
+          </div>
+        )}
       </div>
 
       {/* Stage body */}
@@ -141,10 +169,10 @@ export default function UploadPage() {
             >
               <div style={{ fontSize: 34, color: 'var(--ink-faint)', marginBottom: 10 }}>📄</div>
               <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-                拖曳檔案至此處
+                {t('upload.drop_title')}
               </h3>
               <p style={{ fontSize: 13, color: 'var(--ink-faint)' }}>
-                或點擊選取檔案（支援 .xlsx、.csv，上限 50MB）
+                {t('upload.drop_desc')}
               </p>
             </div>
             <input
@@ -167,7 +195,7 @@ export default function UploadPage() {
                   }} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-                  上傳中... {progress}%
+                  {t('common.upload_progress')} {progress}%
                 </p>
               </div>
             )}
@@ -191,16 +219,16 @@ export default function UploadPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{uploadResult.filename}</div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontFamily: 'var(--mono)' }}>
-                  {uploadResult.row_count} 列 × {uploadResult.col_count} 欄
+                  {t('upload.file_info', { rows: uploadResult.row_count, cols: uploadResult.col_count })}
                 </div>
               </div>
-              <span className="pill ready">✓ 上傳完成</span>
+              <span className="pill ready">✓ {t('status.upload_complete')}</span>
             </div>
 
             {/* Sheet selection */}
             {uploadResult.sheet_names.length > 1 && (
               <div style={{ marginTop: 18 }}>
-                <p style={{ fontSize: 13, fontWeight: 550, marginBottom: 8 }}>選擇工作表：</p>
+                <p style={{ fontSize: 13, fontWeight: 550, marginBottom: 8 }}>{t('common.select_sheet')}</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {uploadResult.sheet_names.map((sheet) => (
                     <button
@@ -240,22 +268,25 @@ export default function UploadPage() {
                 animation: 'spin 0.8s linear infinite',
               }} />
               <span style={{ fontSize: 14, color: 'var(--ink-soft)', fontWeight: 500 }}>
-                評估中，正在分析資料品質...
+                {t('common.assessing')}
               </span>
               <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
             </div>
           ) : (
             <>
               <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                選定工作表後將進行 AI Readiness 品質評估
+                {t('common.ready_for_assess')}
               </span>
-              <button
-                className="btn btn-primary"
-                onClick={handleStartAssessment}
-                disabled={!selectedSheet && uploadResult.sheet_names.length > 1}
-              >
-                開始評估 →
-              </button>
+              <div style={{ position: 'relative' }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleStartAssessment}
+                  disabled={quotaExhausted || (!selectedSheet && uploadResult.sheet_names.length > 1)}
+                  title={quotaExhausted ? t('tooltip.quota_exhausted') : undefined}
+                >
+                  {t('btn.start_assess')} →
+                </button>
+              </div>
             </>
           )}
         </div>

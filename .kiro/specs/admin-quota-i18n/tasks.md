@@ -140,7 +140,7 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Frontend i18n setup (react-i18next + translation files + language switcher)
-  - [~] 8.1 Install react-i18next and configure i18n initialization
+  - [-] 8.1 Install react-i18next and configure i18n initialization
     - Add `react-i18next`, `i18next`, `i18next-http-backend` to package.json
     - Create `src/i18n/index.ts` with i18next init config (default locale zh-TW, fallback to bundled JSON)
     - Create `src/i18n/fallback/zh-TW.json` with all translation keys and Chinese values
