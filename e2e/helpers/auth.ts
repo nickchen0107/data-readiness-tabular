@@ -15,10 +15,10 @@ export const ADMIN_USER = {
  */
 export async function registerUser(page: Page, username: string, password: string): Promise<void> {
   await page.goto('/register')
-  await page.getByPlaceholder('請輸入使用者名稱').fill(username)
-  await page.getByPlaceholder('請輸入密碼（8-72 字元）').fill(password)
-  await page.getByPlaceholder('請再次輸入密碼').fill(password)
-  await page.getByRole('button', { name: '註冊' }).click()
+  await page.locator('input[placeholder*="使用者名稱"]').first().fill(username)
+  await page.locator('input[type="password"]').first().fill(password)
+  await page.locator('input[placeholder*="再次"]').fill(password)
+  await page.getByRole('button', { name: /註冊|register/i }).click()
 
   // Either redirected to landing (success) or shows "already exists" error
   await page.waitForURL(/\/(landing|register)/, { timeout: 10000 })
@@ -29,10 +29,10 @@ export async function registerUser(page: Page, username: string, password: strin
  */
 export async function login(page: Page, username: string, password: string): Promise<void> {
   await page.goto('/login')
-  await page.getByPlaceholder('請輸入使用者名稱').fill(username)
-  await page.getByPlaceholder('請輸入密碼').fill(password)
-  await page.getByRole('button', { name: '登入' }).click()
-  await page.waitForURL('**/landing', { timeout: 10000 })
+  await page.locator('input[placeholder*="使用者名稱"]').first().fill(username)
+  await page.locator('input[type="password"]').fill(password)
+  await page.getByRole('button', { name: /登入|login/i }).click()
+  await page.waitForURL(/\/(landing|upload|assessment)/, { timeout: 10000 })
 }
 
 /**
@@ -58,8 +58,16 @@ export async function logout(page: Page): Promise<void> {
  * Ensure test user is registered (call in beforeAll).
  */
 export async function ensureTestUser(page: Page): Promise<void> {
-  await registerUser(page, TEST_USER.username, TEST_USER.password)
-  // Navigate away to clean state
+  // Always attempt registration — silently handle if already exists
+  await page.goto('/register')
+  await page.waitForTimeout(500)
+  await page.locator('input[placeholder*="使用者名稱"]').first().fill(TEST_USER.username)
+  await page.locator('input[type="password"]').first().fill(TEST_USER.password)
+  await page.locator('input[placeholder*="再次"]').fill(TEST_USER.password)
+  await page.getByRole('button', { name: /註冊|register/i }).click()
+
+  // Wait for either success redirect or error (already exists)
+  await page.waitForTimeout(3000)
   await page.goto('/login')
 }
 

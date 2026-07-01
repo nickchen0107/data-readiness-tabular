@@ -13,10 +13,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
     try {
       const res = await apiClient.post('/auth/login', { email, password })
+      setError('')
       await login(res.data.token)
       navigate('/landing')
     } catch (err: unknown) {

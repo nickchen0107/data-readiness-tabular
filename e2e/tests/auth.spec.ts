@@ -10,10 +10,10 @@ test.describe('Authentication flows', () => {
   test('Register a new user → redirected to landing page', async ({ page }) => {
     await page.goto('/register')
 
-    await page.getByPlaceholder('請輸入使用者名稱').fill(uniqueUser.username)
-    await page.getByPlaceholder('請輸入密碼（8-72 字元）').fill(uniqueUser.password)
-    await page.getByPlaceholder('請再次輸入密碼').fill(uniqueUser.password)
-    await page.getByRole('button', { name: '註冊' }).click()
+    await page.locator('input[placeholder*="使用者名稱"]').first().fill(uniqueUser.username)
+    await page.locator('input[type="password"]').first().fill(uniqueUser.password)
+    await page.locator('input[placeholder*="再次"]').fill(uniqueUser.password)
+    await page.getByRole('button', { name: /註冊|register/i }).click()
 
     // Should auto-login and redirect to landing
     await expect(page).toHaveURL(/\/landing/, { timeout: 10000 })
@@ -41,8 +41,8 @@ test.describe('Authentication flows', () => {
 
     // Should stay on login page and show error
     await expect(page).toHaveURL(/\/login/)
-    const errorBox = page.locator('[style*="rose"], .error-message, [role="alert"]').first()
-    await expect(errorBox).toBeVisible({ timeout: 5000 })
+    // Wait for error to appear (the error div has text content)
+    await expect(page.getByText(/帳號或密碼錯誤|登入失敗|failed|error/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('Logout → redirected to login page', async ({ page }) => {

@@ -16,14 +16,18 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// Response interceptor: handle 401
+// Response interceptor: handle 401 (only for non-auth endpoints)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      // Don't redirect for login/register endpoints — 401 is expected for wrong credentials
+      const url = error.config?.url || ''
+      if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
