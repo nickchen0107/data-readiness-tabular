@@ -139,8 +139,8 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
 - [x] 7. Checkpoint - Full backend verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Frontend i18n setup (react-i18next + translation files + language switcher)
-  - [-] 8.1 Install react-i18next and configure i18n initialization
+- [x] 8. Frontend i18n setup (react-i18next + translation files + language switcher)
+  - [x] 8.1 Install react-i18next and configure i18n initialization
     - Add `react-i18next`, `i18next`, `i18next-http-backend` to package.json
     - Create `src/i18n/index.ts` with i18next init config (default locale zh-TW, fallback to bundled JSON)
     - Create `src/i18n/fallback/zh-TW.json` with all translation keys and Chinese values
@@ -149,14 +149,14 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Wrap App in I18nextProvider in main.tsx
     - _Requirements: 10.1, 10.2, 12.2, 12.3_
 
-  - [~] 8.2 Create LanguageSwitcher component
+  - [x] 8.2 Create LanguageSwitcher component
     - Create `src/components/LanguageSwitcher.tsx` toggle button (zh-TW ↔ en)
     - On click, call i18next.changeLanguage() and save preference to localStorage
     - On page load, read localStorage preference and apply
     - Add LanguageSwitcher to the header/nav area
     - _Requirements: 10.3, 10.4, 10.5_
 
-  - [~] 8.3 Replace hardcoded Chinese strings with translation keys
+  - [x] 8.3 Replace hardcoded Chinese strings with translation keys
     - Replace all hardcoded strings in page components with `t('key')` calls
     - Cover: page titles, button labels, form labels, error messages, stepper labels
     - Cover: indicator names, status labels (Ready/就緒, Conditional/有條件通過, Not Ready/未就緒)
@@ -168,8 +168,8 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Generate random translation maps + locale + key → verify t() returns correct value from data source
     - **Validates: Requirements 10.3**
 
-- [ ] 9. Frontend StepperContext + stepper navigation fixes
-  - [~] 9.1 Create StepperContext with state persistence
+- [x] 9. Frontend StepperContext + stepper navigation fixes
+  - [x] 9.1 Create StepperContext with state persistence
     - Create `src/contexts/StepperContext.tsx` with StepperState interface (maxReachedStep, completedSteps, stepData)
     - Implement StepperContextType with markComplete, setStepData, canNavigateTo methods
     - Persist state to localStorage under key `stepper_state`
@@ -177,7 +177,7 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Wrap App in StepperProvider
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-  - [~] 9.2 Implement stepper navigation constraints in UI
+  - [x] 9.2 Implement stepper navigation constraints in UI
     - Update Stepper component: steps with index > maxReachedStep shown in grey and disabled
     - On click of disabled step, show toast "請先完成前面的步驟"
     - Allow clicking completed steps and current step
@@ -190,19 +190,19 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Generate random maxReachedStep (0-7) → verify canNavigateTo returns true for ≤ M, false for > M
     - **Validates: Requirements 9.1, 9.3**
 
-- [ ] 10. Frontend UploadPage state preservation + quota enforcement UI
-  - [~] 10.1 Implement quota enforcement UI on UploadPage
+- [x] 10. Frontend UploadPage state preservation + quota enforcement UI
+  - [x] 10.1 Implement quota enforcement UI on UploadPage
     - Fetch user quota info from backend (add API call)
     - When quota exhausted: disable "重新上傳檔案" / "開始評估" button
     - Show tooltip on hover of disabled button: "評估次數已用盡，請聯繫管理員"
     - Display remaining quota count in UI
     - _Requirements: 5.3, 5.4_
 
-- [~] 11. Checkpoint - Frontend i18n and stepper verification
+- [x] 11. Checkpoint - Frontend i18n and stepper verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Frontend admin pages
-  - [~] 12.1 Create AdminRoute guard and admin layout
+- [x] 12. Frontend admin pages
+  - [x] 12.1 Create AdminRoute guard and admin layout
     - Create `src/components/AdminRoute.tsx` — checks role from AuthContext, redirects to '/' with toast "無權限存取" if not admin
     - Create `src/pages/admin/AdminLayout.tsx` with sidebar navigation (Users, Quota, Translations, Records)
     - Update AuthContext to include role field from JWT / /auth/me response
@@ -210,21 +210,21 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Register `/admin` routes in App router wrapped with AdminRoute
     - _Requirements: 1.4, 2.1, 2.2_
 
-  - [~] 12.2 Create UsersPage (admin user management)
+  - [x] 12.2 Create UsersPage (admin user management)
     - Create `src/pages/admin/UsersPage.tsx`
     - Fetch paginated user list from `GET /api/admin/users`
     - Display table: email, used quota, remaining quota
     - Implement pagination (default 20 per page)
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [~] 12.3 Create QuotaSettingsPage
+  - [x] 12.3 Create QuotaSettingsPage
     - Create `src/pages/admin/QuotaSettingsPage.tsx`
     - Fetch current settings from `GET /api/admin/quota`
     - Form to edit max_assessments (number input, min 1) and reset_period (select: daily/weekly)
     - Submit via `PUT /api/admin/quota` with validation feedback
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [~] 12.4 Create TranslationsPage (translation editor)
+  - [x] 12.4 Create TranslationsPage (translation editor)
     - Create `src/pages/admin/TranslationsPage.tsx`
     - Fetch paginated translations from `GET /api/admin/translations` with locale filter and search
     - Display key-value list with editable value fields
@@ -233,7 +233,7 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Provide search input to filter by key or value
     - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
-  - [~] 12.5 Create AssessmentRecordsPage
+  - [x] 12.5 Create AssessmentRecordsPage
     - Create `src/pages/admin/AssessmentRecordsPage.tsx`
     - Allow admin to select/filter by user
     - Fetch paginated records from `GET /api/admin/assessments?user_id=...`
@@ -241,7 +241,7 @@ Implements three interconnected modules for the SAFE-AI Excel Brushing Tool: rol
     - Results ordered by timestamp descending
     - _Requirements: 7.1, 7.2, 7.3_
 
-- [~] 13. Final checkpoint - Full integration verification
+- [x] 13. Final checkpoint - Full integration verification
   - Ensure all tests pass, ask the user if questions arise.
   - Verify Docker builds successfully (frontend Dockerfile installs react-i18next dependencies)
   - Verify migration runs and seeds data correctly

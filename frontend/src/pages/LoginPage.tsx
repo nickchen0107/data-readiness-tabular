@@ -61,13 +61,13 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 550, marginBottom: 6 }}>
-              帳號
+              使用者名稱
             </label>
             <input
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="請輸入帳號"
+              placeholder="請輸入使用者名稱"
               required
             />
           </div>
