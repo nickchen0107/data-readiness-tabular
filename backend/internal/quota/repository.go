@@ -43,7 +43,9 @@ func (r *Repository) UpdateSettings(ctx context.Context, maxAssessments int, res
 func (r *Repository) GetUsageCount(ctx context.Context, userID uuid.UUID, since time.Time) (int, error) {
 	var count int
 	err := r.pool.QueryRow(ctx,
-		`SELECT COUNT(*) FROM assessments WHERE user_id = $1 AND created_at >= $2`,
+		`SELECT COUNT(*) FROM assessments a
+		 JOIN uploads u ON a.upload_id = u.id
+		 WHERE u.user_id = $1 AND a.created_at >= $2`,
 		userID, since,
 	).Scan(&count)
 	if err != nil {

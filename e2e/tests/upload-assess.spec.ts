@@ -14,8 +14,8 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Upload an xlsx file → see file info chip with filename, rows, cols', async ({ page }) => {
-    // Navigate to upload page / landing
-    await page.goto('/landing')
+    // Navigate to upload page
+    await page.goto('/upload')
 
     // Upload the test file
     const fileInput = page.locator('input[type="file"]')
@@ -32,7 +32,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Select sheet (if multiple) → sheet highlighted', async ({ page }) => {
-    await page.goto('/landing')
+    await page.goto('/upload')
 
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
@@ -58,16 +58,23 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Click "開始評估" → see loading indicator → redirected to assessment page', async ({ page }) => {
-    await page.goto('/landing')
+    await page.goto('/upload')
 
     // Upload file
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
 
+    // Select first sheet if multiple are shown
+    const sheetBtn = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await sheetBtn.click()
+    }
+
     // Click start assessment button
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
     await expect(startBtn).toBeVisible()
+    await expect(startBtn).toBeEnabled({ timeout: 5000 })
     await startBtn.click()
 
     // Should see a loading indicator (spinner)
@@ -81,7 +88,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Assessment page shows total score, 6 indicators, radar chart, issue list', async ({ page }) => {
-    await page.goto('/landing')
+    await page.goto('/upload')
 
     // Upload and start assessment
     const fileInput = page.locator('input[type="file"]')
@@ -125,7 +132,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Click back to assessment step from stepper → shows latest assessment (not error)', async ({ page }) => {
-    await page.goto('/landing')
+    await page.goto('/upload')
 
     // Upload and assess
     const fileInput = page.locator('input[type="file"]')

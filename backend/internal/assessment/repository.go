@@ -173,10 +173,10 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*Assessment, er
 
 // ListByUserID 分頁取得指定使用者的評估記錄（依 created_at 降序），回傳記錄及總筆數
 func (r *Repository) ListByUserID(ctx context.Context, userID uuid.UUID, offset, limit int) ([]Assessment, int, error) {
-	// 計算總筆數
+	// 計算總筆數 (join through uploads to find user's assessments)
 	var total int
 	err := r.pool.QueryRow(ctx,
-		`SELECT COUNT(*) FROM assessments WHERE user_id = $1`,
+		`SELECT COUNT(*) FROM assessments a JOIN uploads u ON a.upload_id = u.id WHERE u.user_id = $1`,
 		userID,
 	).Scan(&total)
 	if err != nil {
@@ -185,9 +185,10 @@ func (r *Repository) ListByUserID(ctx context.Context, userID uuid.UUID, offset,
 
 	// 查詢分頁結果
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, upload_id, total_score, status, column_details, created_at
-		 FROM assessments WHERE user_id = $1
-		 ORDER BY created_at DESC
+		`SELECT a.id, a.upload_id, a.total_score, a.status, a.column_details, a.created_at
+		 FROM assessments a JOIN uploads u ON a.upload_id = u.id
+		 WHERE u.user_id = $1
+		 ORDER BY a.created_at DESC
 		 LIMIT $2 OFFSET $3`,
 		userID, limit, offset,
 	)
