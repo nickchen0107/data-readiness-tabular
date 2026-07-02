@@ -9,6 +9,7 @@ test.describe('Authentication flows', () => {
 
   test('Register a new user → redirected to landing page', async ({ page }) => {
     await page.goto('/register')
+    await page.waitForTimeout(500)
 
     await page.locator('input[placeholder*="使用者名稱"]').first().fill(uniqueUser.username)
     await page.locator('input[type="password"]').first().fill(uniqueUser.password)
@@ -20,29 +21,45 @@ test.describe('Authentication flows', () => {
   })
 
   test('Login with valid credentials → see dashboard', async ({ page }) => {
-    // Ensure test user exists
-    await registerUser(page, TEST_USER.username, TEST_USER.password)
-
+    // Use the user we just registered above, or the standard test user
     await page.goto('/login')
-    await page.getByPlaceholder('請輸入使用者名稱').fill(TEST_USER.username)
-    await page.getByPlaceholder('請輸入密碼').fill(TEST_USER.password)
-    await page.getByRole('button', { name: '登入' }).click()
+    await page.waitForTimeout(300)
+    await page.getByPlaceholder(/使用者名稱/).first().fill(TEST_USER.username)
+    await page.getByPlaceholder(/密碼/).first().fill(TEST_USER.password)
+    await page.getByRole('button', { name: /登入/i }).click()
 
-    await expect(page).toHaveURL(/\/landing/, { timeout: 10000 })
+    // Might need to register if user doesn't exist
+    const loginSucceeded = await page.waitForURL(/\/landing/, { timeout: 5000 }).then(() => true).catch(() => false)
+
+    if (!loginSucceeded) {
+      // Register the test user first
+      await registerUser(page, TEST_USER.username, TEST_USER.password)
+      await page.waitForTimeout(500)
+      await page.goto('/login')
+      await page.waitForTimeout(300)
+      await page.getByPlaceholder(/使用者名稱/).first().fill(TEST_USER.username)
+      await page.getByPlaceholder(/密碼/).first().fill(TEST_USER.password)
+      await page.getByRole('button', { name: /登入/i }).click()
+      await expect(page).toHaveURL(/\/landing/, { timeout: 10000 })
+    }
+
     // Verify we see some dashboard content
     await expect(page.locator('body')).toContainText(/SAFE-AI|梳理|上傳|Dashboard/i)
   })
 
   test('Login with invalid credentials → see error message', async ({ page }) => {
     await page.goto('/login')
-    await page.getByPlaceholder('請輸入使用者名稱').fill('nonexistent_user')
-    await page.getByPlaceholder('請輸入密碼').fill('wrong_password_123')
-    await page.getByRole('button', { name: '登入' }).click()
+    await page.waitForTimeout(300)
+    await page.getByPlaceholder(/使用者名稱/).first().fill('nonexistent_user_xyz')
+    await page.getByPlaceholder(/密碼/).first().fill('wrong_password_123')
+    await page.getByRole('button', { name: /登入/i }).click()
 
     // Should stay on login page and show error
+    await page.waitForTimeout(2000)
     await expect(page).toHaveURL(/\/login/)
-    // Wait for error to appear (the error div has text content)
-    await expect(page.getByText(/帳號或密碼錯誤|登入失敗|failed|error/i).first()).toBeVisible({ timeout: 5000 })
+
+    // Wait for error to appear
+    await expect(page.getByText(/帳號或密碼錯誤|登入失敗|failed|error|不存在/i).first()).toBeVisible({ timeout: 5000 })
   })
 
   test('Logout → redirected to login page', async ({ page }) => {

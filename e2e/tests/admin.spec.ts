@@ -22,9 +22,13 @@ test.describe('Admin dashboard', () => {
     // Try to navigate to admin page
     await page.goto('/admin')
 
-    // Should be redirected away or see an access denied message
+    // AdminRoute redirects non-admin users to "/"
+    // Wait for the redirect to happen
+    await page.waitForURL((url) => !url.pathname.startsWith('/admin'), { timeout: 10000 }).catch(() => {})
+    await page.waitForTimeout(1000)
+
     const url = page.url()
-    const isRedirected = !url.includes('/admin') || url.includes('/landing') || url.includes('/login')
+    const isRedirected = !url.includes('/admin')
     const hasAccessDenied = await page.getByText(/無權限|unauthorized|forbidden|access denied/i).isVisible().catch(() => false)
 
     expect(isRedirected || hasAccessDenied).toBeTruthy()
