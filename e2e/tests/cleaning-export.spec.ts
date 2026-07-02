@@ -17,10 +17,16 @@ test.describe.serial('Cleaning & Export flow', () => {
    * Helper: upload → assess → navigate to cleaning
    */
   async function navigateToCleaningPage(page: typeof import('@playwright/test').Page.prototype) {
-    await page.goto('/landing')
+    await page.goto('/upload')
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     // Start assessment
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
@@ -117,10 +123,16 @@ test.describe.serial('Cleaning & Export flow', () => {
 
   test('Download buttons are visible (xlsx, pdf, log)', async ({ page }) => {
     // Navigate directly to export page if there's a recent session
-    await page.goto('/landing')
+    await page.goto('/upload')
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
     await startBtn.click()

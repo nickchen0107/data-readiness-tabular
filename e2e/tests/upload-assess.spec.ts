@@ -40,6 +40,12 @@ test.describe.serial('Upload & Assessment flow', () => {
     // Wait for upload to complete
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
 
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
+
     // Check if sheet selector appears (test file has 2 sheets)
     const sheetButtons = page.locator('button:has-text("Sheet")')
     const count = await sheetButtons.count()
@@ -64,6 +70,12 @@ test.describe.serial('Upload & Assessment flow', () => {
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     // Select first sheet if multiple are shown
     const sheetBtn = page.locator('button:has-text("Sheet")').first()
@@ -94,6 +106,12 @@ test.describe.serial('Upload & Assessment flow', () => {
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
     await startBtn.click()
@@ -138,6 +156,12 @@ test.describe.serial('Upload & Assessment flow', () => {
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
     await startBtn.click()

@@ -11,12 +11,18 @@ test.describe('Quota enforcement', () => {
 
   test('User with remaining quota can start assessment', async ({ page }) => {
     await loginAsTestUser(page)
-    await page.goto('/landing')
+    await page.goto('/upload')
 
     // Upload file
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     // The start assessment button should be enabled (not disabled)
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
@@ -44,12 +50,18 @@ test.describe('Quota enforcement', () => {
       })
     })
 
-    await page.goto('/landing')
+    await page.goto('/upload')
 
     // Upload file
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
+
+    // Select first sheet if multiple are shown
+    const sheetBtnAuto = page.locator('button:has-text("Sheet")').first()
+    if (await sheetBtnAuto.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sheetBtnAuto.click()
+    }
 
     // The start assessment button should be disabled
     const startBtn = page.getByRole('button', { name: /開始評估|start.*assess/i })
