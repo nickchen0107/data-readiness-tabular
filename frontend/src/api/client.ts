@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: '/data-readiness-tabular/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,7 +26,7 @@ apiClient.interceptors.response.use(
       if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
-        window.location.href = '/login'
+        window.location.href = '/data-readiness-tabular/login'
       }
     }
     return Promise.reject(error)

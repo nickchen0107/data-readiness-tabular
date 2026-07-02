@@ -15,7 +15,7 @@ i18n
     ns: ['translation'],
     defaultNS: 'translation',
     backend: {
-      loadPath: '/api/translations/{{lng}}',
+      loadPath: '/data-readiness-tabular/api/translations/{{lng}}',
       parse: (data: string) => {
         const parsed = JSON.parse(data)
         return parsed.translations || parsed
