@@ -10,7 +10,7 @@ export const TEST_FILE_PATH = path.resolve(__dirname, '../fixtures/test-data.xls
 export async function uploadTestFile(page: Page): Promise<void> {
   const url = page.url()
   if (!url.includes('/upload')) {
-    await page.goto('/upload')
+    await page.goto('./upload')
   }
 
   const fileInput = page.locator('input[type="file"]')
@@ -63,7 +63,7 @@ export async function selectSheetAndStartAssessment(page: Page): Promise<void> {
  * Full flow: navigate to upload, upload file, select sheet, start assessment.
  */
 export async function uploadAndStartAssessment(page: Page): Promise<void> {
-  await page.goto('/upload')
+  await page.goto('./upload')
   await uploadTestFile(page)
   await selectSheetAndStartAssessment(page)
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 
 interface EvidenceRecord {
@@ -14,6 +15,7 @@ interface EvidenceRecord {
 
 export default function EvidencePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [sessionId, setSessionId] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [record, setRecord] = useState<EvidenceRecord | null>(null)
@@ -34,14 +36,14 @@ export default function EvidencePage() {
       setRecord(res.data)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
-      setError(axiosErr.response?.data?.error?.message || '存證提交失敗')
+      setError(axiosErr.response?.data?.error?.message || t('error.evidence_failed'))
     } finally {
       setSubmitting(false)
     }
   }
 
-  const statusLabel = record?.signature_status === 'confirmed' ? '已確認'
-    : record?.signature_status === 'pending' ? '待確認' : 'Demo 模式'
+  const statusLabel = record?.signature_status === 'confirmed' ? t('evidence.confirmed')
+    : record?.signature_status === 'pending' ? t('evidence.pending') : t('evidence.demo_mode')
   const isDemo = record?.signature_status === 'demo'
 
   return (
@@ -55,9 +57,9 @@ export default function EvidencePage() {
           fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
           letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
         }}>STEP 6</div>
-        <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>存證紀錄</h2>
+        <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>{t('page.evidence.title')}</h2>
         <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 5 }}>
-          將梳理結果的 Hash 提交至區塊鏈進行完整性存證
+          {t('page.evidence.desc')}
         </p>
       </div>
 
@@ -77,9 +79,9 @@ export default function EvidencePage() {
           /* Submit button */
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🛡️</div>
-            <h3 style={{ fontSize: 18, fontWeight: 650, marginBottom: 8 }}>準備提交存證</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 650, marginBottom: 8 }}>{t('evidence.submit_title')}</h3>
             <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 24, maxWidth: 400, margin: '0 auto 24px' }}>
-              系統將計算資料集、梳理紀錄及報告的 SHA-256 雜湊值，並提交至區塊鏈存證
+              {t('evidence.submit_desc')}
             </p>
             <button
               className="btn btn-primary"
@@ -87,13 +89,13 @@ export default function EvidencePage() {
               disabled={submitting || !sessionId}
               style={{ padding: '12px 24px' }}
             >
-              {submitting ? '提交中...' : '提交存證'}
+              {submitting ? t('evidence.submitting') : t('evidence.submit_btn')}
             </button>
             <div style={{
               marginTop: 16, fontSize: 12, color: 'var(--ink-faint)',
               fontFamily: 'var(--mono)',
             }}>
-              Demo Mode — 存證功能為展示用途
+              {t('evidence.demo_note')}
             </div>
           </div>
         ) : (
@@ -110,7 +112,7 @@ export default function EvidencePage() {
                 fontSize: 26, margin: '0 auto 12px',
               }}>🛡️</div>
               <h3 style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em' }}>
-                資料完整性存證
+                {t('evidence.integrity_title')}
               </h3>
               <div style={{
                 fontFamily: 'var(--mono)', fontSize: 12, color: '#9fb8d4',
@@ -136,8 +138,8 @@ export default function EvidencePage() {
                 { key: 'Dataset Hash', value: record.dataset_hash },
                 { key: 'Log Hash', value: record.log_hash },
                 { key: 'Report Hash', value: record.report_hash },
-                { key: '時間戳', value: record.timestamp },
-                { key: '簽章狀態', value: statusLabel },
+                { key: t('evidence.timestamp'), value: record.timestamp },
+                { key: t('evidence.signature_status'), value: statusLabel },
               ].map((row) => (
                 <div key={row.key} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -186,10 +188,10 @@ export default function EvidencePage() {
           background: 'var(--panel)',
         }}>
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-            存證完成，可進行問答對比
+            {t('evidence.complete_hint')}
           </span>
           <button className="btn btn-primary" onClick={() => navigate('/qa')}>
-            下一步 →
+            {t('btn.next_step')} →
           </button>
         </div>
       )}

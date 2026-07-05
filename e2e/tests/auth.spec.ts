@@ -8,7 +8,7 @@ test.describe('Authentication flows', () => {
   }
 
   test('Register a new user → redirected to landing page', async ({ page }) => {
-    await page.goto('/register')
+    await page.goto('./register')
     await page.waitForTimeout(500)
 
     await page.locator('input[placeholder*="使用者名稱"]').first().fill(uniqueUser.username)
@@ -22,7 +22,7 @@ test.describe('Authentication flows', () => {
 
   test('Login with valid credentials → see dashboard', async ({ page }) => {
     // Use the user we just registered above, or the standard test user
-    await page.goto('/login')
+    await page.goto('./login')
     await page.waitForTimeout(300)
     await page.getByPlaceholder(/使用者名稱/).first().fill(TEST_USER.username)
     await page.getByPlaceholder(/密碼/).first().fill(TEST_USER.password)
@@ -35,7 +35,7 @@ test.describe('Authentication flows', () => {
       // Register the test user first
       await registerUser(page, TEST_USER.username, TEST_USER.password)
       await page.waitForTimeout(500)
-      await page.goto('/login')
+      await page.goto('./login')
       await page.waitForTimeout(300)
       await page.getByPlaceholder(/使用者名稱/).first().fill(TEST_USER.username)
       await page.getByPlaceholder(/密碼/).first().fill(TEST_USER.password)
@@ -48,7 +48,7 @@ test.describe('Authentication flows', () => {
   })
 
   test('Login with invalid credentials → see error message', async ({ page }) => {
-    await page.goto('/login')
+    await page.goto('./login')
     await page.waitForTimeout(300)
     await page.getByPlaceholder(/使用者名稱/).first().fill('nonexistent_user_xyz')
     await page.getByPlaceholder(/密碼/).first().fill('wrong_password_123')

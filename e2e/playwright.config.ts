@@ -7,7 +7,7 @@ export default defineConfig({
   fullyParallel: false,
   reporter: [['html'], ['list']],
   use: {
-    baseURL: 'http://localhost:3080/data-readiness-tabular',
+    baseURL: 'http://localhost:3080/data-readiness-tabular/',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',

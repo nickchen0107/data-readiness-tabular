@@ -25,7 +25,7 @@ test.describe('Quota enforcement', () => {
       })
     })
 
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     // Upload file
     const fileInput = page.locator('input[type="file"]')
@@ -57,7 +57,7 @@ test.describe('Quota enforcement', () => {
       })
     })
 
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     // Upload file
     const fileInput = page.locator('input[type="file"]')

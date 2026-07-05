@@ -27,7 +27,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Upload an xlsx file → see file info chip with filename, rows, cols', async ({ page }) => {
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     // Upload the test file
     const fileInput = page.locator('input[type="file"]')
@@ -42,7 +42,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Select sheet (if multiple) → sheet highlighted', async ({ page }) => {
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
@@ -73,7 +73,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Click "開始評估" → see loading indicator → redirected to assessment page', async ({ page }) => {
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     // Upload file
     const fileInput = page.locator('input[type="file"]')
@@ -97,7 +97,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Assessment page shows total score, 6 indicators, radar chart, issue list', async ({ page }) => {
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     // Upload and start assessment
     const fileInput = page.locator('input[type="file"]')
@@ -142,7 +142,7 @@ test.describe.serial('Upload & Assessment flow', () => {
   })
 
   test('Click back to assessment step from stepper → shows latest assessment (not error)', async ({ page }) => {
-    await page.goto('/upload')
+    await page.goto('./upload')
 
     // Upload and assess
     const fileInput = page.locator('input[type="file"]')
@@ -159,7 +159,7 @@ test.describe.serial('Upload & Assessment flow', () => {
     await page.waitForTimeout(3000)
 
     // Navigate to a different step via URL then come back
-    await page.goto('/upload')
+    await page.goto('./upload')
     await page.waitForTimeout(1000)
 
     // Click on assessment step in the stepper
@@ -172,7 +172,7 @@ test.describe.serial('Upload & Assessment flow', () => {
       await expect(page.locator('body')).not.toContainText(/error|錯誤/i)
     } else {
       // Stepper not visible — navigate directly
-      await page.goto('/assessment')
+      await page.goto('./assessment')
       await page.waitForTimeout(2000)
       await expect(page.locator('body')).not.toContainText(/error|錯誤/i)
     }

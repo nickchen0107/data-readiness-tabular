@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 
 interface CleaningResult {
@@ -35,54 +36,54 @@ interface Rule {
   enabled: boolean
 }
 
-function getAvailableRules(issues: DetectedIssue[]): Rule[] {
+function getAvailableRules(issues: DetectedIssue[], t: (key: string) => string): Rule[] {
   const indicators = new Set(issues.map(i => i.indicator))
   const descriptions = issues.map(i => i.description).join(' ')
   
   const rules: Rule[] = [
     {
-      id: 'date_normalize', label: '統一日期格式',
-      desc: '將各種日期寫法統一為 yyyy-MM-dd',
+      id: 'date_normalize', label: t('rule.date_normalize'),
+      desc: t('rule.date_normalize.desc'),
       enabled: true,
     },
     {
-      id: 'dedup', label: '移除重複列',
-      desc: '刪除完全相同的資料列',
+      id: 'dedup', label: t('rule.dedup'),
+      desc: t('rule.dedup.desc'),
       enabled: indicators.has('duplicate_similar'),
     },
     {
-      id: 'name_normalize', label: '客戶名正規化',
-      desc: '統一公司名稱的不同寫法為最常用版本',
+      id: 'name_normalize', label: t('rule.name_normalize'),
+      desc: t('rule.name_normalize.desc'),
       enabled: indicators.has('name_variants'),
     },
     {
-      id: 'subtotal_remove', label: '移除小計列',
-      desc: '刪除含「小計」「合計」的非資料列',
+      id: 'subtotal_remove', label: t('rule.subtotal_remove'),
+      desc: t('rule.subtotal_remove.desc'),
       enabled: descriptions.includes('小計'),
     },
     {
-      id: 'newline_remove', label: '移除儲存格內換行',
-      desc: '將儲存格內的換行符號替換為空格',
+      id: 'newline_remove', label: t('rule.newline_remove'),
+      desc: t('rule.newline_remove.desc'),
       enabled: descriptions.includes('換行'),
     },
     {
-      id: 'bracket_note_remove', label: '移除中文括號備註',
-      desc: '刪除儲存格內的中文括號備註內容',
+      id: 'bracket_note_remove', label: t('rule.bracket_note_remove'),
+      desc: t('rule.bracket_note_remove.desc'),
       enabled: descriptions.includes('備註'),
     },
     {
-      id: 'empty_row_remove', label: '移除全空列',
-      desc: '刪除所有欄位都為空的資料列',
+      id: 'empty_row_remove', label: t('rule.empty_row_remove'),
+      desc: t('rule.empty_row_remove.desc'),
       enabled: descriptions.includes('多表格') || indicators.has('completeness'),
     },
     {
-      id: 'multi_table_keep_main', label: '移除多餘資料區塊',
-      desc: '保留最大的連續資料區塊，移除其他被空白列隔開的段落',
+      id: 'multi_table_keep_main', label: t('rule.multi_table_keep_main'),
+      desc: t('rule.multi_table_keep_main.desc'),
       enabled: descriptions.includes('多表格'),
     },
     {
-      id: 'empty_col_remove', label: '移除高度空缺欄位',
-      desc: '移除超過 80% 為空值的欄位，提升資料完整度',
+      id: 'empty_col_remove', label: t('rule.empty_col_remove'),
+      desc: t('rule.empty_col_remove.desc'),
       enabled: indicators.has('completeness') || descriptions.includes('缺漏'),
     },
   ]
@@ -91,6 +92,7 @@ function getAvailableRules(issues: DetectedIssue[]): Rule[] {
 }
 
 export default function CleaningPage() {
+  const { t } = useTranslation()
   const [availableRules, setAvailableRules] = useState<Rule[]>([])
   const [selectedRules, setSelectedRules] = useState<string[]>([])
   const [assessmentId, setAssessmentId] = useState<string>('')
@@ -112,11 +114,11 @@ export default function CleaningPage() {
       const res = await apiClient.get('/assess/latest')
       setAssessmentId(res.data.id)
       const issues: DetectedIssue[] = res.data.issues || []
-      const rules = getAvailableRules(issues)
+      const rules = getAvailableRules(issues, t)
       setAvailableRules(rules)
       setSelectedRules(rules.map(r => r.id))
     } catch {
-      const allRules = getAvailableRules([])
+      const allRules = getAvailableRules([], t)
       setAvailableRules(allRules)
     }
   }
@@ -151,7 +153,7 @@ export default function CleaningPage() {
         setShowConfirmPanel(true)
       } catch (err: unknown) {
         const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
-        setError(axiosErr.response?.data?.error?.message || '無法取得預覽資料')
+        setError(axiosErr.response?.data?.error?.message || t('error.preview_failed'))
       }
       return
     }
@@ -169,7 +171,7 @@ export default function CleaningPage() {
       setPreviewData(null)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
-      setError(axiosErr.response?.data?.error?.message || '梳理執行失敗')
+      setError(axiosErr.response?.data?.error?.message || t('error.cleaning_failed'))
     } finally {
       setCleaning(false)
     }
@@ -188,9 +190,9 @@ export default function CleaningPage() {
           fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
           letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
         }}>STEP 5</div>
-        <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>資料梳理</h2>
+        <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>{t('page.cleaning.title')}</h2>
         <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 5 }}>
-          選擇梳理規則並執行批次資料清理
+          {t('page.cleaning.desc')}
         </p>
       </div>
 
@@ -208,7 +210,7 @@ export default function CleaningPage() {
 
         {/* Rules checkboxes */}
         <div style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>批次規則</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{t('assessment.batch_rules')}</h3>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {availableRules.map((rule) => {
               const isSelected = selectedRules.includes(rule.id)
@@ -245,13 +247,13 @@ export default function CleaningPage() {
         {/* Confirmation Panel */}
         {showConfirmPanel && previewData && (
           <div style={{ marginBottom: 24, border: '1px solid var(--line)', borderRadius: 10, padding: 18 }}>
-            <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>確認要移除的項目</h4>
+            <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('assessment.confirm_removal')}</h4>
 
             {/* Empty columns - Excel-style data grid */}
             {previewData.empty_columns?.length > 0 && selectedRules.includes('empty_col_remove') && (
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-                  高度空缺欄位（紅色欄位建議移除，點擊表頭切換）
+                  {t('assessment.empty_col_hint')}
                 </div>
                 <div style={{ overflowX: 'auto', border: '1px solid var(--line-soft)', borderRadius: 8, maxHeight: 400, overflowY: 'auto' }}>
                   <table style={{ borderCollapse: 'collapse', fontSize: 11, fontFamily: 'var(--mono)', minWidth: 'max-content' }}>
@@ -289,7 +291,7 @@ export default function CleaningPage() {
                             >
                               {isCandidate && (
                                 <div style={{ fontSize: 11, marginBottom: 3, fontWeight: 700 }}>
-                                  {isSelected ? '☑ 移除' : '☐ 保留'}
+                                  {isSelected ? `☑ ${t('clean.remove_label')}` : `☐ ${t('clean.keep_label')}`}
                                 </div>
                               )}
                               <div style={{ fontSize: 11, lineHeight: 1.3 }}>{col.col_name}</div>
@@ -303,7 +305,7 @@ export default function CleaningPage() {
                                   fontSize: 11,
                                   fontWeight: 700,
                                 }}>
-                                  {Math.round(col.empty_rate * 100)}% 空值
+                                  {Math.round(col.empty_rate * 100)}% {t('clean.empty_rate')}
                                 </div>
                               )}
                             </th>
@@ -339,7 +341,7 @@ export default function CleaningPage() {
                     {/* Footer row showing empty rate */}
                     <tfoot>
                       <tr>
-                        <td style={{ padding: '6px 6px', border: '1px solid #e5e7eb', background: '#f9fafb', fontWeight: 600, textAlign: 'center', fontSize: 9, color: 'var(--ink-faint)', position: 'sticky', left: 0, zIndex: 1 }}>空率</td>
+                        <td style={{ padding: '6px 6px', border: '1px solid #e5e7eb', background: '#f9fafb', fontWeight: 600, textAlign: 'center', fontSize: 9, color: 'var(--ink-faint)', position: 'sticky', left: 0, zIndex: 1 }}>{t('clean.empty_rate')}</td>
                         {(previewData.all_columns || []).map((col: any) => {
                           const isCandidate = previewData.empty_columns.some((ec: any) => ec.col_index === col.col_index)
                           const isSelected = selectedColRemovals.includes(col.col_index)
@@ -354,7 +356,7 @@ export default function CleaningPage() {
                               fontWeight: 600,
                               color: isCandidate ? 'var(--rose)' : 'var(--ink-faint)',
                             }}>
-                              {pct}% 空
+                              {pct}% {t('clean.empty_rate')}
                             </td>
                           )
                         })}
@@ -369,7 +371,7 @@ export default function CleaningPage() {
             {previewData.data_blocks?.length > 1 && selectedRules.includes('multi_table_keep_main') && (
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-                  資料區塊（選擇要保留的區塊，其他將被移除）
+                  {t('assessment.data_blocks_hint')}
                 </div>
                 {previewData.data_blocks.map((block: any, idx: number) => {
                   const isSelected = selectedBlockKeep === idx
@@ -394,10 +396,10 @@ export default function CleaningPage() {
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontWeight: 650, fontSize: 14 }}>第 {block.start_row}–{block.end_row} 列</span>
-                          <span style={{ color: 'var(--ink-faint)', fontSize: 12, fontFamily: 'var(--mono)' }}>({block.row_count} 列)</span>
+                          <span style={{ fontWeight: 650, fontSize: 14 }}>{t('clean.block_range', { start: block.start_row, end: block.end_row })}</span>
+                          <span style={{ color: 'var(--ink-faint)', fontSize: 12, fontFamily: 'var(--mono)' }}>({block.row_count} {t('common.rows')})</span>
                           {block.is_main && (
-                            <span style={{ color: 'var(--green)', fontSize: 11, fontWeight: 600, background: 'rgba(21,128,61,0.08)', padding: '2px 8px', borderRadius: 10 }}>推薦保留</span>
+                            <span style={{ color: 'var(--green)', fontSize: 11, fontWeight: 600, background: 'rgba(21,128,61,0.08)', padding: '2px 8px', borderRadius: 10 }}>{t('assessment.recommend_keep')}</span>
                           )}
                         </div>
                         <div style={{
@@ -452,7 +454,7 @@ export default function CleaningPage() {
               }} />
             </div>
             <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-              梳理執行中...
+              {t('common.cleaning_progress')}
             </p>
           </div>
         )}
@@ -464,14 +466,14 @@ export default function CleaningPage() {
             borderRadius: 'var(--radius)', padding: '18px 20px', marginBottom: 20,
           }}>
             <h4 style={{ fontSize: 14, fontWeight: 600, color: 'var(--green)', marginBottom: 12 }}>
-              ✓ 梳理完成
+              ✓ {t('clean.complete')}
             </h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div style={{
                 background: 'var(--paper)', borderRadius: 'var(--radius-sm)', padding: '12px 14px',
               }}>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontFamily: 'var(--mono)', marginBottom: 4 }}>
-                  資料列數
+                  {t('clean.row_count')}
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 700 }}>
                   {result.rows_before} → {result.rows_after}
@@ -484,7 +486,7 @@ export default function CleaningPage() {
                 background: 'var(--paper)', borderRadius: 'var(--radius-sm)', padding: '12px 14px',
               }}>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontFamily: 'var(--mono)', marginBottom: 4 }}>
-                  品質分數
+                  {t('clean.quality_score')}
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 700 }}>
                   {result.score_before.toFixed(1)} → {result.score_after.toFixed(1)}
@@ -508,7 +510,7 @@ export default function CleaningPage() {
         background: 'var(--panel)',
       }}>
         <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-          {result ? '梳理完成，可進入下一步產出檔案' : '選擇規則後點擊執行'}
+          {result ? t('common.after_clean_hint') : t('common.select_rules_hint')}
         </span>
         {!result ? (
           <button
@@ -516,11 +518,11 @@ export default function CleaningPage() {
             onClick={handleClean}
             disabled={cleaning || selectedRules.length === 0}
           >
-            {cleaning ? '執行中...' : '執行梳理'}
+            {cleaning ? t('common.running') : t('btn.run_clean')}
           </button>
         ) : (
           <button className="btn btn-primary" onClick={() => navigate('/export')}>
-            下一步 →
+            {t('btn.next_step')} →
           </button>
         )}
       </div>

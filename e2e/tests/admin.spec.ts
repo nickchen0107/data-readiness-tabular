@@ -20,11 +20,11 @@ test.describe('Admin dashboard', () => {
     await loginAsTestUser(page)
 
     // Try to navigate to admin page
-    await page.goto('/admin')
+    await page.goto('./admin')
 
     // AdminRoute redirects non-admin users to "/"
     // Wait for the redirect to happen
-    await page.waitForURL((url) => !url.pathname.startsWith('/admin'), { timeout: 10000 }).catch(() => {})
+    await page.waitForURL((url) => !url.pathname.includes('/admin'), { timeout: 10000 }).catch(() => {})
     await page.waitForTimeout(1000)
 
     const url = page.url()
@@ -37,7 +37,7 @@ test.describe('Admin dashboard', () => {
   test('Admin user can access /admin → see user management page', async ({ page }) => {
     await loginAsAdmin(page)
 
-    await page.goto('/admin')
+    await page.goto('./admin')
 
     // Should see admin dashboard content
     await expect(page).toHaveURL(/\/admin/)
@@ -48,14 +48,14 @@ test.describe('Admin dashboard', () => {
     await loginAsAdmin(page)
 
     // Navigate to quota settings
-    await page.goto('/admin')
+    await page.goto('./admin')
 
     // Click on quota settings link/tab
     const quotaLink = page.getByText(/配額|quota/i).first()
     if (await quotaLink.isVisible()) {
       await quotaLink.click()
     } else {
-      await page.goto('/admin/quota')
+      await page.goto('./admin/quota')
     }
 
     // Should see quota configuration
@@ -65,7 +65,7 @@ test.describe('Admin dashboard', () => {
   test('Admin can update quota settings', async ({ page }) => {
     await loginAsAdmin(page)
 
-    await page.goto('/admin/quota').catch(() => page.goto('/admin'))
+    await page.goto('./admin/quota').catch(() => page.goto('./admin'))
 
     // Find quota settings link if needed
     const quotaLink = page.getByText(/配額|quota/i).first()
@@ -92,7 +92,7 @@ test.describe('Admin dashboard', () => {
     await loginAsAdmin(page)
 
     // Navigate to translations page
-    await page.goto('/admin/translations').catch(() => page.goto('/admin'))
+    await page.goto('./admin/translations').catch(() => page.goto('./admin'))
 
     const transLink = page.getByText(/翻譯|translation/i).first()
     if (await transLink.isVisible() && !page.url().includes('/translation')) {
@@ -119,7 +119,7 @@ test.describe('Admin dashboard', () => {
     await loginAsAdmin(page)
 
     // Navigate to assessment records page
-    await page.goto('/admin/records').catch(() => page.goto('/admin'))
+    await page.goto('./admin/records').catch(() => page.goto('./admin'))
 
     const recordsLink = page.getByText(/記錄|record|history|評估.*紀錄/i).first()
     if (await recordsLink.isVisible()) {

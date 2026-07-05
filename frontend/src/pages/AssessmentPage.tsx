@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts'
 import apiClient from '../api/client'
 
@@ -63,6 +64,7 @@ export default function AssessmentPage() {
   const [hoveredIndicator, setHoveredIndicator] = useState<string | null>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { t } = useTranslation()
 
   useEffect(() => {
     loadAssessment()
@@ -72,20 +74,18 @@ export default function AssessmentPage() {
     try {
       const id = searchParams.get('id')
       if (id) {
-        // Load specific assessment by ID
         const res = await apiClient.get(`/assess/${id}`)
         setAssessment(res.data)
       } else {
-        // No ID provided — load latest assessment
         const res = await apiClient.get('/assess/latest')
         setAssessment(res.data)
       }
     } catch (err: unknown) {
       const axiosErr = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
       if (axiosErr.response?.status === 404) {
-        setError('評估記錄不存在，請先上傳檔案')
+        setError(t('error.assessment_not_found'))
       } else {
-        setError(axiosErr.response?.data?.error?.message || '載入評估結果失敗')
+        setError(axiosErr.response?.data?.error?.message || t('error.load_assessment_failed'))
       }
     } finally {
       setLoading(false)
@@ -95,7 +95,7 @@ export default function AssessmentPage() {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 60, color: 'var(--ink-faint)' }}>
-        載入評估結果中...
+        {t('common.loading_assessment')}
       </div>
     )
   }
@@ -105,28 +105,28 @@ export default function AssessmentPage() {
       <div style={{ textAlign: 'center', padding: 60 }}>
         <p style={{ color: 'var(--rose)', marginBottom: 16 }}>{error}</p>
         <button className="btn btn-ghost" onClick={() => navigate('/upload')}>
-          返回上傳
+          {t('btn.back_upload')}
         </button>
       </div>
     )
   }
 
   const indicatorInfo: Record<string, { desc: string; calc: string; source?: string }> = {
-    '列完整度': { desc: '衡量每列資料的填寫比例', calc: '每列非空格數 ÷ 總欄數的平均值 × 100', source: 'ISO/IEC 25024:2015 Completeness' },
-    '欄完整度': { desc: '衡量每欄資料的填寫比例', calc: '每欄非空值數 ÷ 總列數的平均值 × 100', source: 'ISO/IEC 25024:2015 Completeness' },
-    '格式一致性': { desc: '衡量每欄內資料格式的統一程度', calc: '每欄主要格式佔比的平均值 × 100', source: 'ISO/IEC 25024:2015 Consistency' },
-    '資料唯一性': { desc: '依據 ISO/IEC 25024 衡量資料的完整度與唯一性', calc: '填寫率 × (1 − 重複列比例) × 100', source: 'ISO/IEC 25024:2015 Uniqueness × Completeness' },
-    '表格結構': { desc: '衡量表格結構是否乾淨規整', calc: '依據合併儲存格、多層表頭、小計列等問題各扣分', source: 'ISO/IEC 25012:2008 Consistency' },
-    'AI 問答可用性': { desc: '衡量資料結構是否具備 AI/ML 所需的 schema 品質', calc: '依據 ID 欄、時間欄、分類欄、數值欄、欄名品質各加 20 分', source: 'ISO/IEC 5259-2:2024 Structural Quality' },
+    [t('indicator.row_completeness')]: { desc: t('indicator.row_completeness.desc'), calc: t('indicator.row_completeness.calc'), source: t('indicator.row_completeness.source') },
+    [t('indicator.column_completeness')]: { desc: t('indicator.column_completeness.desc'), calc: t('indicator.column_completeness.calc'), source: t('indicator.column_completeness.source') },
+    [t('indicator.format_consistency')]: { desc: t('indicator.format_consistency.desc'), calc: t('indicator.format_consistency.calc'), source: t('indicator.format_consistency.source') },
+    [t('indicator.data_uniqueness')]: { desc: t('indicator.data_uniqueness.desc'), calc: t('indicator.data_uniqueness.calc'), source: t('indicator.data_uniqueness.source') },
+    [t('indicator.table_structure')]: { desc: t('indicator.table_structure.desc'), calc: t('indicator.table_structure.calc'), source: t('indicator.table_structure.source') },
+    [t('indicator.ai_query_readiness')]: { desc: t('indicator.ai_query_readiness.desc'), calc: t('indicator.ai_query_readiness.calc'), source: t('indicator.ai_query_readiness.source') },
   }
 
   const indicators: Indicator[] = [
-    { name: '列完整度', nameEn: 'Row Completeness', score: assessment.row_completeness, color: 'var(--accent)' },
-    { name: '欄完整度', nameEn: 'Column Completeness', score: assessment.column_completeness, color: 'var(--accent)' },
-    { name: '格式一致性', nameEn: 'Format Consistency', score: assessment.format_consistency, color: 'var(--green)' },
-    { name: '資料唯一性', nameEn: 'Data Uniqueness', score: assessment.duplicate_similar, color: 'var(--amber)' },
-    { name: '表格結構', nameEn: 'Table Structure', score: assessment.table_structure, color: 'var(--accent)' },
-    { name: 'AI 問答可用性', nameEn: 'AI Query Readiness', score: assessment.ai_query_readiness, color: 'var(--green)' },
+    { name: t('indicator.row_completeness'), nameEn: 'Row Completeness', score: assessment.row_completeness, color: 'var(--accent)' },
+    { name: t('indicator.column_completeness'), nameEn: 'Column Completeness', score: assessment.column_completeness, color: 'var(--accent)' },
+    { name: t('indicator.format_consistency'), nameEn: 'Format Consistency', score: assessment.format_consistency, color: 'var(--green)' },
+    { name: t('indicator.data_uniqueness'), nameEn: 'Data Uniqueness', score: assessment.duplicate_similar, color: 'var(--amber)' },
+    { name: t('indicator.table_structure'), nameEn: 'Table Structure', score: assessment.table_structure, color: 'var(--accent)' },
+    { name: t('indicator.ai_query_readiness'), nameEn: 'AI Query Readiness', score: assessment.ai_query_readiness, color: 'var(--green)' },
   ]
 
   const radarData = indicators.map(ind => ({ subject: ind.name, score: ind.score }))
@@ -149,7 +149,7 @@ export default function AssessmentPage() {
 
   const formatCount = (count: number): string => {
     if (count >= 10000) {
-      return (count / 10000).toFixed(1).replace(/\.0$/, '') + '萬'
+      return (count / 10000).toFixed(1).replace(/\.0$/, '') + t('misc.ten_thousand')
     }
     return count.toLocaleString()
   }
@@ -181,7 +181,7 @@ export default function AssessmentPage() {
             fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
           }}>STEP 2</div>
-          <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>品質評估結果</h2>
+          <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>{t('page.assessment.title')}</h2>
         </div>
         <span className={`pill ${statusClass}`}>● {statusLabel}</span>
       </div>
@@ -225,11 +225,11 @@ export default function AssessmentPage() {
           <div style={{ flex: 1 }}>
             <span className={`pill ${statusClass}`}>● {statusLabel}</span>
             <p style={{ marginTop: 11, fontSize: 14, color: 'var(--ink-soft)' }}>
-              這份 <b>{assessment.filename || 'Excel'}</b>（{displayRowCount} 列）{assessment.status === 'not_ready' ? '目前不建議直接進入 AI 應用' : assessment.status === 'conditional' ? '建議先梳理再進入 AI 應用' : '可直接進入 AI 應用'}。
+              {t('assessment.file_summary', { filename: assessment.filename || 'Excel', rows: displayRowCount })} {assessment.status === 'not_ready' ? t('assessment.not_ready_hint') : assessment.status === 'conditional' ? t('assessment.conditional_hint') : t('assessment.ai_ready_hint')}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 14 }}>
               <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>High readiness</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>{t('distribution.high_readiness')}</div>
                 <div style={{ fontSize: 27, fontWeight: 700, color: 'var(--green)' }}>
                   {assessment.row_distribution?.high || 0}
                 </div>
@@ -238,7 +238,7 @@ export default function AssessmentPage() {
                 </div>
               </div>
               <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>Medium</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>{t('distribution.medium')}</div>
                 <div style={{ fontSize: 27, fontWeight: 700, color: 'var(--amber)' }}>
                   {assessment.row_distribution?.medium || 0}
                 </div>
@@ -247,7 +247,7 @@ export default function AssessmentPage() {
                 </div>
               </div>
               <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>Low</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>{t('distribution.low')}</div>
                 <div style={{ fontSize: 27, fontWeight: 700, color: 'var(--rose)' }}>
                   {assessment.row_distribution?.low || 0}
                 </div>
@@ -260,7 +260,7 @@ export default function AssessmentPage() {
         </div>
 
         {/* Six indicators section */}
-        <h3 style={{ fontSize: 17, fontWeight: 700, margin: '28px 0 14px' }}>六項評估指標</h3>
+        <h3 style={{ fontSize: 17, fontWeight: 700, margin: '28px 0 14px' }}>{t('assessment.six_indicators')}</h3>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
           {/* Indicator bars */}
           <div style={{ flex: 1 }}>
@@ -306,10 +306,10 @@ export default function AssessmentPage() {
                     minWidth: 220, maxWidth: 320, whiteSpace: 'normal',
                   }}>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>{indicatorInfo[ind.name].desc}</div>
-                    <div style={{ color: 'var(--ink-faint)' }}>計算：{indicatorInfo[ind.name].calc}</div>
+                    <div style={{ color: 'var(--ink-faint)' }}>{t('misc.calculation')}：{indicatorInfo[ind.name].calc}</div>
                     {indicatorInfo[ind.name].source && (
                       <div style={{ color: 'var(--accent)', fontSize: 11, marginTop: 6, fontFamily: 'var(--mono)' }}>
-                        依據：{indicatorInfo[ind.name].source}
+                        {t('misc.reference')}：{indicatorInfo[ind.name].source}
                       </div>
                     )}
                   </div>
@@ -333,15 +333,15 @@ export default function AssessmentPage() {
         {/* Issues */}
         {assessment.issues && assessment.issues.length > 0 && (
           <div style={{ marginTop: 28 }}>
-            <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>問題清單</h3>
+            <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>{t('assessment.issue_list')}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {assessment.issues.map((issue, i) => {
                 const sevColor = issue.severity === 'High' ? 'var(--rose)'
                   : issue.severity === 'Medium' ? 'var(--amber)' : 'var(--accent)'
                 const sevBg = issue.severity === 'High' ? 'var(--rose-soft)'
                   : issue.severity === 'Medium' ? 'var(--amber-soft)' : 'var(--accent-soft)'
-                const sevLabel = issue.severity === 'High' ? 'HIGH'
-                  : issue.severity === 'Medium' ? 'MED' : 'LOW'
+                const sevLabel = issue.severity === 'High' ? t('severity.high')
+                  : issue.severity === 'Medium' ? t('severity.medium') : t('severity.low')
                 const isExpanded = expandedIssues.has(i)
                 const hasExamples = issue.examples && issue.examples.length > 0
                 return (
@@ -426,7 +426,7 @@ export default function AssessmentPage() {
                               {formatCount(issue.affected_rows)}
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                              {issue.unit || '列受影響'}
+                              {issue.unit || t('common.rows_affected')}
                             </div>
                           </div>
                         )}
@@ -575,7 +575,7 @@ export default function AssessmentPage() {
                                                     textAlign: isMerged ? 'center' : 'left',
                                                     textDecoration: isHighlighted && issue.indicator === 'strikethrough_formatting' ? 'line-through' : 'none',
                                                   }}>
-                                                    {isMerged ? `⬌ ${cell || '(合併儲存格)'}` : isEmpty ? '—' : cell}
+                                                    {isMerged ? `⬌ ${cell || `(${t('clean.merged_cell_label')})`}` : isEmpty ? '—' : cell}
                                                     {ex.format_labels?.[k] && (
                                                       <div style={{ marginTop: 2 }}>
                                                         <span style={{
@@ -607,7 +607,7 @@ export default function AssessmentPage() {
                                 marginTop: 8, fontSize: 11, color: 'var(--ink-faint)',
                                 textAlign: 'center', fontFamily: 'var(--mono)',
                               }}>
-                                僅顯示前 5 筆，更多問題列請至梳理步驟查看
+                                {t('common.show_first_n')}
                               </div>
                             )}
                           </div>
@@ -628,7 +628,7 @@ export default function AssessmentPage() {
             }}>
               <span style={{ flexShrink: 0, fontSize: 14 }}>ⓘ</span>
               <span>
-                <b>Best Row Benchmark</b> 系統找出欄位最完整的一列作為「結構參考」，但不作為唯一評分依據，也不代表業務正確性。
+                {t('assessment.best_row_note')}
               </span>
             </div>
           </div>
@@ -642,10 +642,10 @@ export default function AssessmentPage() {
         background: 'var(--panel)',
       }}>
         <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-          評估完成，請決定下一步操作
+          {t('assessment.complete_hint')}
         </span>
         <button className="btn btn-primary" onClick={() => navigate('/routing')}>
-          下一步 →
+          {t('btn.next_step')} →
         </button>
       </div>
     </div>

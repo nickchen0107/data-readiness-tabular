@@ -10,7 +10,7 @@ test.describe('Language switching (i18n)', () => {
 
   test.beforeEach(async ({ page }) => {
     // Clear localStorage to reset language preference
-    await page.goto('/login')
+    await page.goto('./login')
     await page.evaluate(() => {
       localStorage.removeItem('i18nextLng')
       localStorage.removeItem('language')

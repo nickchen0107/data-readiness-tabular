@@ -14,7 +14,7 @@ export const ADMIN_USER = {
  * Register a new user. Silently succeeds if user already exists.
  */
 export async function registerUser(page: Page, username: string, password: string): Promise<void> {
-  await page.goto('/register')
+  await page.goto('./register')
   await page.waitForTimeout(300)
   await page.locator('input[placeholder*="使用者名稱"]').first().fill(username)
   await page.locator('input[type="password"]').first().fill(password)
@@ -30,7 +30,7 @@ export async function registerUser(page: Page, username: string, password: strin
  * Login with given credentials and wait for navigation to landing page.
  */
 export async function login(page: Page, username: string, password: string): Promise<void> {
-  await page.goto('/login')
+  await page.goto('./login')
   await page.waitForTimeout(300)
   await page.locator('input[placeholder*="使用者名稱"]').first().fill(username)
   await page.locator('input[type="password"]').fill(password)
@@ -62,7 +62,7 @@ export async function logout(page: Page): Promise<void> {
  * If registration fails (user already exists), just proceed to login to verify creds work.
  */
 export async function ensureTestUser(page: Page): Promise<void> {
-  await page.goto('/register')
+  await page.goto('./register')
   await page.waitForTimeout(500)
   await page.locator('input[placeholder*="使用者名稱"]').first().fill(TEST_USER.username)
   await page.locator('input[type="password"]').first().fill(TEST_USER.password)
@@ -75,19 +75,19 @@ export async function ensureTestUser(page: Page): Promise<void> {
   // If we got redirected to landing, user was created successfully
   if (page.url().includes('/landing')) {
     // Logout so tests start fresh
-    await page.goto('/login')
+    await page.goto('./login')
     return
   }
 
   // User already exists — verify we can login
-  await page.goto('/login')
+  await page.goto('./login')
   await page.waitForTimeout(300)
   await page.locator('input[placeholder*="使用者名稱"]').first().fill(TEST_USER.username)
   await page.locator('input[type="password"]').fill(TEST_USER.password)
   await page.getByRole('button', { name: /登入|login/i }).click()
   await page.waitForURL(/\/(landing|upload|assessment)/, { timeout: 10000 }).catch(() => {})
   await page.waitForTimeout(300)
-  await page.goto('/login')
+  await page.goto('./login')
 }
 
 /**
@@ -95,7 +95,7 @@ export async function ensureTestUser(page: Page): Promise<void> {
  * Note: Admin promotion must be done via direct API/DB in real setup.
  */
 export async function ensureAdminUser(page: Page): Promise<void> {
-  await page.goto('/register')
+  await page.goto('./register')
   await page.waitForTimeout(500)
   await page.locator('input[placeholder*="使用者名稱"]').first().fill(ADMIN_USER.username)
   await page.locator('input[type="password"]').first().fill(ADMIN_USER.password)
@@ -107,7 +107,7 @@ export async function ensureAdminUser(page: Page): Promise<void> {
 
   // Attempt admin promotion via API (if bootstrap endpoint exists)
   try {
-    const response = await page.request.post('/api/admin/bootstrap', {
+    const response = await page.request.post('./api/admin/bootstrap', {
       data: { username: ADMIN_USER.username },
     })
     if (response.status() === 404) {
@@ -117,7 +117,7 @@ export async function ensureAdminUser(page: Page): Promise<void> {
     console.warn('Could not promote admin user via API. Ensure admin_e2e has admin role.')
   }
 
-  await page.goto('/login')
+  await page.goto('./login')
   await page.waitForTimeout(300)
 }
 

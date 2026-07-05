@@ -223,6 +223,51 @@ func (r *Repository) ListByUserID(ctx context.Context, userID uuid.UUID, offset,
 	return assessments, total, nil
 }
 
+// ListAll 分頁取得所有使用者的評估記錄（依 created_at 降序），回傳記錄及總筆數
+func (r *Repository) ListAll(ctx context.Context, offset, limit int) ([]Assessment, int, error) {
+	var total int
+	err := r.pool.QueryRow(ctx, `SELECT COUNT(*) FROM assessments`).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := r.pool.Query(ctx,
+		`SELECT a.id, a.upload_id, a.total_score, a.status, a.column_details, a.created_at
+		 FROM assessments a
+		 ORDER BY a.created_at DESC
+		 LIMIT $1 OFFSET $2`,
+		limit, offset,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var assessments []Assessment
+	for rows.Next() {
+		var a Assessment
+		var columnDetailsJSON []byte
+		if err := rows.Scan(&a.ID, &a.UploadID, &a.TotalScore, &a.Status, &columnDetailsJSON, &a.CreatedAt); err != nil {
+			return nil, 0, err
+		}
+		if columnDetailsJSON != nil {
+			type combinedDetails struct {
+				Filename string `json:"filename"`
+			}
+			var combined combinedDetails
+			if err := json.Unmarshal(columnDetailsJSON, &combined); err == nil {
+				a.Filename = combined.Filename
+			}
+		}
+		assessments = append(assessments, a)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return assessments, total, nil
+}
+
 // SettingsRepository 處理系統設定的資料庫操作
 type SettingsRepository struct {
 	pool *pgxpool.Pool

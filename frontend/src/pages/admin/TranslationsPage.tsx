@@ -19,9 +19,10 @@ interface TranslationsResponse {
 
 export default function TranslationsPage() {
   const { t } = useTranslation()
-  const [locale, setLocale] = useState('zh-TW')
+  const [locale, setLocale] = useState('en')
   const [search, setSearch] = useState('')
   const [translations, setTranslations] = useState<TranslationEntry[]>([])
+  const [zhMap, setZhMap] = useState<Record<string, string>>({})
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -29,6 +30,19 @@ export default function TranslationsPage() {
   const [editValue, setEditValue] = useState('')
   const [saveMessage, setSaveMessage] = useState('')
   const pageSize = 30
+
+  // Load zh-TW translations as source reference
+  useEffect(() => {
+    apiClient.get<TranslationsResponse>('/admin/translations?locale=zh-TW&page_size=500')
+      .then((res) => {
+        const map: Record<string, string> = {}
+        for (const entry of (res.data.translations || [])) {
+          map[entry.key] = entry.value
+        }
+        setZhMap(map)
+      })
+      .catch(() => {})
+  }, [])
 
   const fetchTranslations = useCallback(() => {
     setLoading(true)
@@ -73,7 +87,10 @@ export default function TranslationsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, fontWeight: 650, marginBottom: 24 }}>{t('admin.translations')}</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 650, marginBottom: 8 }}>{t('admin.translations')}</h1>
+      <p style={{ fontSize: 13, color: 'var(--ink-faint)', marginBottom: 20 }}>
+        左欄為中文原文（參考用），右欄為目標語言翻譯（可編輯）
+      </p>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
@@ -85,8 +102,8 @@ export default function TranslationsPage() {
             border: '1px solid var(--line, #e0e0e0)', borderRadius: 8,
           }}
         >
-          <option value="zh-TW">zh-TW</option>
-          <option value="en">en</option>
+          <option value="en">English (en)</option>
+          <option value="zh-TW">中文 (zh-TW)</option>
         </select>
         <input
           type="text"
@@ -114,76 +131,87 @@ export default function TranslationsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--line, #e0e0e0)' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 10px', fontWeight: 600, width: '35%' }}>Key</th>
-                  <th style={{ textAlign: 'left', padding: '8px 10px', fontWeight: 600, width: '50%' }}>Value</th>
+                  <th style={{ textAlign: 'left', padding: '8px 10px', fontWeight: 600, width: '40%' }}>
+                    中文原文
+                  </th>
+                  <th style={{ textAlign: 'left', padding: '8px 10px', fontWeight: 600, width: '45%' }}>
+                    {locale === 'zh-TW' ? '值' : '翻譯'}
+                  </th>
                   <th style={{ textAlign: 'center', padding: '8px 10px', fontWeight: 600, width: '15%' }}></th>
                 </tr>
               </thead>
               <tbody>
-                {translations.map((tr) => (
-                  <tr key={tr.id} style={{ borderBottom: '1px solid var(--line-soft, #f0f0f0)' }}>
-                    <td style={{ padding: '8px 10px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>
-                      {tr.key}
-                    </td>
-                    <td style={{ padding: '8px 10px' }}>
-                      {editingId === tr.id ? (
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          style={{
-                            width: '100%', padding: '4px 8px', fontSize: 13,
-                            border: '1px solid var(--accent, #2563eb)', borderRadius: 4,
-                          }}
-                          onKeyDown={(e) => { if (e.key === 'Enter') handleSave(tr.id) }}
-                        />
-                      ) : (
-                        <span>{tr.value}</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '8px 10px', textAlign: 'center' }}>
-                      {editingId === tr.id ? (
-                        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                          <button
-                            onClick={() => handleSave(tr.id)}
+                {translations.map((tr) => {
+                  const zhSource = zhMap[tr.key] || tr.key
+                  return (
+                    <tr key={tr.id} style={{ borderBottom: '1px solid var(--line-soft, #f0f0f0)' }}>
+                      <td style={{ padding: '8px 10px', color: 'var(--ink-soft)', fontSize: 13 }}>
+                        <div>{zhSource}</div>
+                        <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--ink-faint)', marginTop: 2 }}>
+                          {tr.key}
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 10px' }}>
+                        {editingId === tr.id ? (
+                          <input
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
                             style={{
-                              fontSize: 12, padding: '4px 10px', borderRadius: 4,
-                              background: 'var(--accent, #2563eb)', color: '#fff',
-                              border: 'none', cursor: 'pointer',
+                              width: '100%', padding: '4px 8px', fontSize: 13,
+                              border: '1px solid var(--accent, #2563eb)', borderRadius: 4,
                             }}
-                          >
-                            {t('btn.save')}
-                          </button>
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSave(tr.id) }}
+                            autoFocus
+                          />
+                        ) : (
+                          <span>{tr.value}</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                        {editingId === tr.id ? (
+                          <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                            <button
+                              onClick={() => handleSave(tr.id)}
+                              style={{
+                                fontSize: 12, padding: '4px 10px', borderRadius: 4,
+                                background: 'var(--accent, #2563eb)', color: '#fff',
+                                border: 'none', cursor: 'pointer',
+                              }}
+                            >
+                              {t('btn.save')}
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              style={{
+                                fontSize: 12, padding: '4px 10px', borderRadius: 4,
+                                background: 'var(--panel, #f5f5f5)', color: 'var(--ink-soft)',
+                                border: '1px solid var(--line)', cursor: 'pointer',
+                              }}
+                            >
+                              {t('btn.cancel')}
+                            </button>
+                          </div>
+                        ) : (
                           <button
-                            onClick={() => setEditingId(null)}
+                            onClick={() => { setEditingId(tr.id); setEditValue(tr.value) }}
                             style={{
                               fontSize: 12, padding: '4px 10px', borderRadius: 4,
                               background: 'var(--panel, #f5f5f5)', color: 'var(--ink-soft)',
                               border: '1px solid var(--line)', cursor: 'pointer',
                             }}
                           >
-                            {t('btn.cancel')}
+                            ✏️
                           </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => { setEditingId(tr.id); setEditValue(tr.value) }}
-                          style={{
-                            fontSize: 12, padding: '4px 10px', borderRadius: 4,
-                            background: 'var(--panel, #f5f5f5)', color: 'var(--ink-soft)',
-                            border: '1px solid var(--line)', cursor: 'pointer',
-                          }}
-                        >
-                          ✏️
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
                 {translations.length === 0 && (
                   <tr>
                     <td colSpan={3} style={{ padding: 20, textAlign: 'center', color: 'var(--ink-faint)' }}>
-                      No translations found
+                      找不到翻譯項目
                     </td>
                   </tr>
                 )}

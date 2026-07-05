@@ -191,28 +191,12 @@ func (h *Handler) UpdateTranslation(c *gin.Context) {
 }
 
 // ListAssessments 處理 GET /api/admin/assessments?user_id=uuid&page=1&page_size=20
-// 回傳指定使用者的評估記錄
+// user_id 為可選參數，若不提供則列出所有使用者的評估記錄
 func (h *Handler) ListAssessments(c *gin.Context) {
-	userIDStr := c.Query("user_id")
-	if userIDStr == "" {
-		response.SendValidationError(c, "請提供 user_id 參數")
-		return
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		response.SendValidationError(c, "無效的 user_id")
-		return
-	}
-
 	page, pageSize := parsePagination(c)
 	offset := (page - 1) * pageSize
 
-	assessments, total, err := h.assessRepo.ListByUserID(c.Request.Context(), userID, offset, pageSize)
-	if err != nil {
-		response.SendInternalError(c)
-		return
-	}
+	userIDStr := c.Query("user_id")
 
 	type assessmentItem struct {
 		ID         uuid.UUID `json:"id"`
@@ -220,6 +204,26 @@ func (h *Handler) ListAssessments(c *gin.Context) {
 		TotalScore float64   `json:"total_score"`
 		Status     string    `json:"status"`
 		CreatedAt  string    `json:"created_at"`
+	}
+
+	var assessments []assessment.Assessment
+	var total int
+	var err error
+
+	if userIDStr != "" {
+		userID, parseErr := uuid.Parse(userIDStr)
+		if parseErr != nil {
+			response.SendValidationError(c, "無效的 user_id")
+			return
+		}
+		assessments, total, err = h.assessRepo.ListByUserID(c.Request.Context(), userID, offset, pageSize)
+	} else {
+		assessments, total, err = h.assessRepo.ListAll(c.Request.Context(), offset, pageSize)
+	}
+
+	if err != nil {
+		response.SendInternalError(c)
+		return
 	}
 
 	items := make([]assessmentItem, 0, len(assessments))

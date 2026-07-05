@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Legend, PieChart, Pie, Cell,
@@ -52,25 +53,17 @@ interface ComparisonData {
   post_clean_assessment: AssessmentSummary
 }
 
-/* ─── Helpers ─── */
-
-function formatCount(count: number): string {
-  if (count >= 10000) {
-    return (count / 10000).toFixed(1).replace(/\.0$/, '') + '萬'
-  }
-  return count.toLocaleString()
-}
-
 /* ─── Excel Table Renderer ─── */
 
 interface ExcelTableProps {
   examples: IssueExample[]
-  highlightColor?: string       // border color for highlighted cells
-  highlightBg?: string          // background for highlighted cells
-  strikethrough?: boolean       // apply line-through to highlighted cells
+  highlightColor?: string
+  highlightBg?: string
+  strikethrough?: boolean
+  t: (key: string) => string
 }
 
-function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlightBg = 'rgba(220, 38, 38, 0.06)', strikethrough = false }: ExcelTableProps) {
+function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlightBg = 'rgba(220, 38, 38, 0.06)', strikethrough = false, t }: ExcelTableProps) {
   // Group examples by label
   const groups: Array<{ label: string | undefined; items: IssueExample[] }> = []
   let currentLabel: string | undefined = undefined
@@ -168,7 +161,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
                               textAlign: isMerged ? 'center' : 'left',
                               textDecoration: isHighlighted && strikethrough ? 'line-through' : 'none',
                             }}>
-                              {isMerged ? `⬌ ${cell || '(合併儲存格)'}` : isEmpty ? '—' : cell}
+                              {isMerged ? `⬌ ${cell || `(${t('clean.merged_cell_label')})`}` : isEmpty ? '—' : cell}
                               {ex.format_labels?.[k] && (
                                 <div style={{ marginTop: 2 }}>
                                   <span style={{
@@ -192,7 +185,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
       ))}
       {examples.length >= 5 && (
         <div style={{ marginTop: 8, fontSize: 11, color: 'var(--ink-faint)', textAlign: 'center', fontFamily: 'var(--mono)' }}>
-          僅顯示前 5 筆，更多問題列請至梳理步驟查看
+          {t('common.show_first_n')}
         </div>
       )}
     </>
@@ -203,6 +196,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
 
 export default function ExportPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [data, setData] = useState<ComparisonData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -215,13 +209,13 @@ export default function ExportPage() {
     try {
       const latestRes = await apiClient.get('/clean/latest')
       const sessionId = latestRes.data.session_id || latestRes.data.id
-      if (!sessionId) { setError('找不到梳理記錄，請先執行資料梳理'); setLoading(false); return }
+      if (!sessionId) { setError(t('error.no_cleaning_record')); setLoading(false); return }
       const compareRes = await apiClient.get(`/compare/${sessionId}`)
       setData(compareRes.data)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
-      if (axiosErr.response?.status === 404) { setError('梳理記錄不存在，請先執行資料梳理') }
-      else { setError(axiosErr.response?.data?.error?.message || '載入比較資料失敗') }
+      if (axiosErr.response?.status === 404) { setError(t('error.no_cleaning_record')) }
+      else { setError(axiosErr.response?.data?.error?.message || t('error.load_comparison_failed')) }
     } finally { setLoading(false) }
   }
 
@@ -247,14 +241,21 @@ export default function ExportPage() {
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
-    } catch { alert('下載失敗，請稍後再試') }
+    } catch { alert(t('error.download_failed')) }
     finally { setDownloading('') }
+  }
+
+  const formatCount = (count: number): string => {
+    if (count >= 10000) {
+      return (count / 10000).toFixed(1).replace(/\.0$/, '') + t('misc.ten_thousand')
+    }
+    return count.toLocaleString()
   }
 
   if (loading) {
     return (
       <div style={{ background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 14, padding: 60, textAlign: 'center', color: 'var(--ink-faint)' }}>
-        載入比較資料中...
+        {t('common.loading_comparison')}
       </div>
     )
   }
@@ -262,8 +263,8 @@ export default function ExportPage() {
   if (error || !data) {
     return (
       <div style={{ background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 14, textAlign: 'center', padding: 60 }}>
-        <p style={{ color: 'var(--rose)', marginBottom: 16 }}>{error || '載入失敗'}</p>
-        <button className="btn btn-ghost" onClick={() => navigate('/cleaning')}>返回梳理步驟</button>
+        <p style={{ color: 'var(--rose)', marginBottom: 16 }}>{error || t('error.load_comparison_failed')}</p>
+        <button className="btn btn-ghost" onClick={() => navigate('/cleaning')}>{t('btn.back_cleaning')}</button>
       </div>
     )
   }
@@ -289,12 +290,12 @@ export default function ExportPage() {
   const lowDelta = (postDist?.low || 0) - (origDist?.low || 0)
 
   const indicators = [
-    { name: '列完整度', nameEn: 'Row Completeness', before: original_assessment.row_completeness, after: post_clean_assessment.row_completeness },
-    { name: '欄完整度', nameEn: 'Column Completeness', before: original_assessment.column_completeness, after: post_clean_assessment.column_completeness },
-    { name: '格式一致性', nameEn: 'Format Consistency', before: original_assessment.format_consistency, after: post_clean_assessment.format_consistency },
-    { name: '資料唯一性', nameEn: 'Data Uniqueness', before: original_assessment.duplicate_similar, after: post_clean_assessment.duplicate_similar },
-    { name: '表格結構', nameEn: 'Table Structure', before: original_assessment.table_structure, after: post_clean_assessment.table_structure },
-    { name: 'AI 問答可用性', nameEn: 'AI Query Readiness', before: original_assessment.ai_query_readiness, after: post_clean_assessment.ai_query_readiness },
+    { name: t('indicator.row_completeness'), nameEn: 'Row Completeness', before: original_assessment.row_completeness, after: post_clean_assessment.row_completeness },
+    { name: t('indicator.column_completeness'), nameEn: 'Column Completeness', before: original_assessment.column_completeness, after: post_clean_assessment.column_completeness },
+    { name: t('indicator.format_consistency'), nameEn: 'Format Consistency', before: original_assessment.format_consistency, after: post_clean_assessment.format_consistency },
+    { name: t('indicator.data_uniqueness'), nameEn: 'Data Uniqueness', before: original_assessment.duplicate_similar, after: post_clean_assessment.duplicate_similar },
+    { name: t('indicator.table_structure'), nameEn: 'Table Structure', before: original_assessment.table_structure, after: post_clean_assessment.table_structure },
+    { name: t('indicator.ai_query_readiness'), nameEn: 'AI Query Readiness', before: original_assessment.ai_query_readiness, after: post_clean_assessment.ai_query_readiness },
   ]
 
   const radarData = indicators.map(ind => ({ subject: ind.name, before: ind.before, after: ind.after }))
@@ -309,9 +310,9 @@ export default function ExportPage() {
   }
 
   const downloads = [
-    { type: 'xlsx' as const, icon: '📊', label: '梳理後資料', filename: 'refined.xlsx', desc: '清理完成的 Excel 檔案' },
-    { type: 'pdf' as const, icon: '📋', label: '品質報告', filename: 'report.pdf', desc: '含圖表的品質評估報告' },
-    { type: 'log' as const, icon: '📝', label: '梳理紀錄', filename: 'cleaning.log', desc: '所有操作的文字紀錄' },
+    { type: 'xlsx' as const, icon: '📊', label: t('export.refined_data'), filename: 'refined.xlsx', desc: t('export.refined_data.desc') },
+    { type: 'pdf' as const, icon: '📋', label: t('export.quality_report'), filename: 'report.pdf', desc: t('export.quality_report.desc') },
+    { type: 'log' as const, icon: '📝', label: t('export.cleaning_log'), filename: 'cleaning.log', desc: t('export.cleaning_log.desc') },
   ]
 
   /* ─── Render (mirrors AssessmentPage layout) ─── */
@@ -327,7 +328,7 @@ export default function ExportPage() {
             fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
           }}>STEP 5</div>
-          <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>梳理成果總覽</h2>
+          <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>{t('page.export.title')}</h2>
         </div>
         <span className={`pill ${statusClass}`}>● {statusLabel}</span>
       </div>
@@ -369,14 +370,14 @@ export default function ExportPage() {
           <div style={{ flex: 1 }}>
             <span className={`pill ${statusClass}`}>● {statusLabel}</span>
             <p style={{ marginTop: 11, fontSize: 14, color: 'var(--ink-soft)' }}>
-              梳理後品質 <b>{session.score_after.toFixed(1)}</b> 分
+              {t('assessment.score_after_clean')} <b>{session.score_after.toFixed(1)}</b> {t('common.score')}
               {delta > 0 && <span style={{ color: 'var(--green)', fontWeight: 600, marginLeft: 4 }}>(+{delta.toFixed(1)})</span>}
               <span style={{ margin: '0 10px', color: 'var(--ink-faint)' }}>｜</span>
-              資料列數 <b>{session.rows_before}</b> 列 → <b>{session.rows_after}</b> 列
+              {t('assessment.data_rows')} <b>{session.rows_before}</b> {t('common.rows')} → <b>{session.rows_after}</b> {t('common.rows')}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 14 }}>
               <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>High readiness</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>{t('distribution.high_readiness')}</div>
                 <div style={{ fontSize: 27, fontWeight: 700, color: 'var(--green)' }}>
                   {postDist?.high || 0}
                   {highDelta !== 0 && <span style={{ fontSize: 13, fontWeight: 600, color: highDelta > 0 ? 'var(--green)' : 'var(--rose)', marginLeft: 4 }}>({highDelta > 0 ? '+' : ''}{highDelta})</span>}
@@ -386,7 +387,7 @@ export default function ExportPage() {
                 </div>
               </div>
               <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>Medium</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>{t('distribution.medium')}</div>
                 <div style={{ fontSize: 27, fontWeight: 700, color: 'var(--amber)' }}>
                   {postDist?.medium || 0}
                   {medDelta !== 0 && <span style={{ fontSize: 13, fontWeight: 600, color: medDelta > 0 ? 'var(--amber)' : 'var(--green)', marginLeft: 4 }}>({medDelta > 0 ? '+' : ''}{medDelta})</span>}
@@ -396,7 +397,7 @@ export default function ExportPage() {
                 </div>
               </div>
               <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>Low</div>
+                <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginBottom: 6, fontFamily: 'var(--mono)' }}>{t('distribution.low')}</div>
                 <div style={{ fontSize: 27, fontWeight: 700, color: 'var(--rose)' }}>
                   {postDist?.low || 0}
                   {lowDelta !== 0 && <span style={{ fontSize: 13, fontWeight: 600, color: lowDelta < 0 ? 'var(--green)' : 'var(--rose)', marginLeft: 4 }}>({lowDelta > 0 ? '+' : ''}{lowDelta})</span>}
@@ -410,7 +411,7 @@ export default function ExportPage() {
         </div>
 
         {/* ═══ Six indicators + Radar Chart ═══ */}
-        <h3 style={{ fontSize: 17, fontWeight: 700, margin: '28px 0 14px' }}>六項指標改善</h3>
+        <h3 style={{ fontSize: 17, fontWeight: 700, margin: '28px 0 14px' }}>{t('export.indicator_improvement')}</h3>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
             {indicators.map((ind) => {
@@ -449,8 +450,8 @@ export default function ExportPage() {
                 <PolarGrid />
                 <PolarAngleAxis dataKey="subject" style={{ fontSize: 11 }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                <Radar name="梳理前" dataKey="before" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.15} />
-                <Radar name="梳理後" dataKey="after" stroke="var(--green)" fill="var(--green)" fillOpacity={0.3} />
+                <Radar name={t('export.before_clean')} dataKey="before" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.15} />
+                <Radar name={t('export.after_clean')} dataKey="after" stroke="var(--green)" fill="var(--green)" fillOpacity={0.3} />
                 <Legend />
               </RadarChart>
             </ResponsiveContainer>
@@ -459,18 +460,18 @@ export default function ExportPage() {
 
         {/* ═══ Issues — resolved vs remaining (expandable cards) ═══ */}
         <div style={{ marginTop: 28 }}>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>問題解決狀態</h3>
+          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>{t('export.issue_status')}</h3>
 
-          {/* ── 已修正的問題 (Resolved) ── */}
+          {/* ── Resolved ── */}
           <div style={{ marginBottom: 20 }}>
             <h4 style={{ fontSize: 15, fontWeight: 650, marginBottom: 10, color: 'var(--green)' }}>
-              已修正的問題
+              {t('export.resolved_issues')}
               <span style={{ marginLeft: 8, fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-faint)', fontWeight: 500 }}>
                 ({resolvedIssues.length})
               </span>
             </h4>
             {resolvedIssues.length === 0 ? (
-              <p style={{ fontSize: 13, color: 'var(--ink-faint)', fontStyle: 'italic' }}>本次梳理未解決任何問題</p>
+              <p style={{ fontSize: 13, color: 'var(--ink-faint)', fontStyle: 'italic' }}>{t('export.no_resolved')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {resolvedIssues.map((issue, i) => {
@@ -510,7 +511,7 @@ export default function ExportPage() {
                                 fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 7px',
                                 borderRadius: 4, fontWeight: 700, letterSpacing: '0.04em',
                                 background: 'rgba(34, 197, 94, 0.1)', color: 'var(--green, #16a34a)',
-                              }}>✓ 已修正</span>
+                              }}>✓ {t('export.fixed_label')}</span>
                             </div>
                             {issue.description && (
                               <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, paddingLeft: hasExamples ? 21 : 0 }}>
@@ -524,7 +525,7 @@ export default function ExportPage() {
                                 {formatCount(issue.affected_rows)}
                               </div>
                               <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                                {issue.unit || '列受影響'}
+                                {issue.unit || t('common.rows_affected')}
                               </div>
                             </div>
                           )}
@@ -542,13 +543,14 @@ export default function ExportPage() {
                                 examples={postExamples}
                                 highlightColor="var(--green, #16a34a)"
                                 highlightBg="rgba(34, 197, 94, 0.08)"
+                                t={t}
                               />
                             </div>
                           </div>
                         )}
                         {!hasExamples && isExpanded && (
                           <div style={{ padding: '0 18px 16px 18px', borderTop: '1px solid var(--line-soft)' }}>
-                            <p style={{ fontSize: 13, color: 'var(--green)', fontStyle: 'italic', marginTop: 12 }}>✓ 已修正</p>
+                            <p style={{ fontSize: 13, color: 'var(--green)', fontStyle: 'italic', marginTop: 12 }}>✓ {t('export.fixed_label')}</p>
                           </div>
                         )}
                       </div>
@@ -559,16 +561,16 @@ export default function ExportPage() {
             )}
           </div>
 
-          {/* ── 尚待解決的問題 (Remaining) ── */}
+          {/* ── Remaining ── */}
           <div style={{ marginBottom: 20 }}>
             <h4 style={{ fontSize: 15, fontWeight: 650, marginBottom: 10, color: 'var(--amber)' }}>
-              尚待解決的問題
+              {t('export.remaining_issues')}
               <span style={{ marginLeft: 8, fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-faint)', fontWeight: 500 }}>
                 ({remainingIssues.length})
               </span>
             </h4>
             {remainingIssues.length === 0 ? (
-              <p style={{ fontSize: 13, color: 'var(--ink-faint)', fontStyle: 'italic' }}>所有問題已全部修正 🎉</p>
+              <p style={{ fontSize: 13, color: 'var(--ink-faint)', fontStyle: 'italic' }}>{t('export.all_resolved')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {remainingIssues.map((issue, i) => {
@@ -579,8 +581,8 @@ export default function ExportPage() {
                     : issue.severity === 'Medium' ? 'var(--amber)' : 'var(--accent)'
                   const sevBg = issue.severity === 'High' ? 'var(--rose-soft)'
                     : issue.severity === 'Medium' ? 'var(--amber-soft)' : 'var(--accent-soft)'
-                  const sevLabel = issue.severity === 'High' ? 'HIGH'
-                    : issue.severity === 'Medium' ? 'MED' : 'LOW'
+                  const sevLabel = issue.severity === 'High' ? t('severity.high')
+                    : issue.severity === 'Medium' ? t('severity.medium') : t('severity.low')
                   return (
                     <div key={key} style={{
                       border: '1px solid var(--line)', borderRadius: 10,
@@ -646,7 +648,7 @@ export default function ExportPage() {
                                 {formatCount(issue.affected_rows)}
                               </div>
                               <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                                {issue.unit || '列受影響'}
+                                {issue.unit || t('common.rows_affected')}
                               </div>
                             </div>
                           )}
@@ -660,7 +662,7 @@ export default function ExportPage() {
                             transition: isExpanded ? 'max-height 0.3s ease' : 'max-height 0.2s ease',
                           }}>
                             <div style={{ padding: '0 18px 16px 18px', borderTop: '1px solid var(--line-soft)' }}>
-                              <ExcelTable examples={issue.examples!} strikethrough={issue.indicator === 'strikethrough_formatting'} />
+                              <ExcelTable examples={issue.examples!} strikethrough={issue.indicator === 'strikethrough_formatting'} t={t} />
                             </div>
                           </div>
                         )}
@@ -675,14 +677,14 @@ export default function ExportPage() {
 
         {/* ═══ Download Section ═══ */}
         <div style={{ marginTop: 28 }}>
-          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>產出下載</h3>
+          <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 14 }}>{t('page.export.download_title')}</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
             {downloads.map((dl) => (
               <button key={dl.type} onClick={() => handleDownload(dl.type)} disabled={downloading === dl.type}
                 style={{ border: '1.5px solid var(--line)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s', background: 'var(--panel)', opacity: downloading === dl.type ? 0.5 : 1 }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>{dl.icon}</div>
                 <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{dl.label}</div>
-                <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-faint)' }}>{downloading === dl.type ? '下載中...' : dl.filename}</div>
+                <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-faint)' }}>{downloading === dl.type ? t('common.downloading') + '...' : dl.filename}</div>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 6 }}>{dl.desc}</div>
               </button>
             ))}
@@ -692,8 +694,8 @@ export default function ExportPage() {
 
       {/* Footer */}
       <div style={{ padding: '16px 28px', borderTop: '1px solid var(--line-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--panel)' }}>
-        <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>下載完成後可進行存證作業</span>
-        <button className="btn btn-primary" onClick={() => navigate('/evidence')}>下一步 →</button>
+        <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>{t('export.evidence_hint')}</span>
+        <button className="btn btn-primary" onClick={() => navigate('/evidence')}>{t('btn.next_step')} →</button>
       </div>
     </div>
   )

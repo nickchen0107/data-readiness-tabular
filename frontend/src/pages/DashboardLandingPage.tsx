@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 export default function DashboardLandingPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
     <div style={{
@@ -20,10 +22,10 @@ export default function DashboardLandingPage() {
             letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
           }}>LANDING</div>
           <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>
-            先了解你的 AI 資料現況
+            {t('dashboard.title')}
           </h2>
           <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 5, maxWidth: 560 }}>
-            想全面評估 AI 資訊安全，可先填寫 AICM 資安成熟度問卷（獨立平台）。或直接試用下方工具。
+            {t('dashboard.desc')}
           </p>
         </div>
         <div style={{
@@ -31,9 +33,9 @@ export default function DashboardLandingPage() {
           border: '1px dashed var(--line)', borderRadius: 6, padding: '5px 9px',
           whiteSpace: 'nowrap', background: 'var(--panel)', lineHeight: 1.5, textAlign: 'left',
         }}>
-          <b style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>邊界</b><br />
-          AICM 屬獨立平台<br />
-          本工具僅放一行提示
+          <b style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>{t('dashboard.boundary_label')}</b><br />
+          {t('dashboard.boundary_line1')}<br />
+          {t('dashboard.boundary_line2')}
         </div>
       </div>
 
@@ -46,9 +48,9 @@ export default function DashboardLandingPage() {
         }}>
           <div style={{ fontSize: 22 }}>🛡️</div>
           <div>
-            <div style={{ fontWeight: 650, marginBottom: 3 }}>AICM AI 資安成熟度問卷</div>
+            <div style={{ fontWeight: 650, marginBottom: 3 }}>{t('dashboard.aicm_title')}</div>
             <div style={{ color: 'var(--ink-faint)', fontSize: 13 }}>
-              獨立平台。可先評估貴公司 AI 資安現況，或略過直接試用梳理工具。
+              {t('dashboard.aicm_desc')}
             </div>
           </div>
         </div>
@@ -66,15 +68,15 @@ export default function DashboardLandingPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
           }}>📊</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 650, fontSize: 16 }}>Excel 梳理小工具</div>
+            <div style={{ fontWeight: 650, fontSize: 16 }}>{t('dashboard.excel_tool_title')}</div>
             <div style={{ fontSize: 13, color: '#1c4e7a' }}>
-              上傳 Excel → 評估 readiness → 梳理 → evidence 存證 → AI 前後對比問答。
+              {t('dashboard.excel_tool_desc')}
             </div>
           </div>
         </div>
 
         <p style={{ color: 'var(--ink-faint)', fontSize: 13, marginTop: 18, textAlign: 'center' }}>
-          點「下一步」或點擊上方「Excel 梳理小工具」開始體驗工具動線。
+          {t('dashboard.hint')}
         </p>
       </div>
 
@@ -87,7 +89,7 @@ export default function DashboardLandingPage() {
         <div />
         <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>1 / 8</div>
         <button className="btn btn-primary" onClick={() => navigate('/upload')}>
-          下一步 →
+          {t('btn.next_step')} →
         </button>
       </div>
     </div>

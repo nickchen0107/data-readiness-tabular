@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 
 export default function RoutingPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [status, setStatus] = useState<string>('')
   const [score, setScore] = useState<number>(0)
 
@@ -27,9 +29,9 @@ export default function RoutingPage() {
           fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--accent)',
           letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 5,
         }}>STEP 3</div>
-        <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>分流決策</h2>
+        <h2 style={{ fontSize: 21, fontWeight: 650, letterSpacing: '-0.015em' }}>{t('page.routing.title')}</h2>
         <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 5 }}>
-          根據評估結果，請選擇後續操作方式
+          {t('page.routing.desc')}
         </p>
       </div>
 
@@ -43,10 +45,7 @@ export default function RoutingPage() {
             padding: '13px 16px', fontSize: 13, color: '#7a1a12', marginBottom: 20,
           }}>
             <span style={{ fontWeight: 700, fontFamily: 'var(--mono)' }}>⚠</span>
-            <span>
-              資料品質評分為 <strong>{score.toFixed(1)}</strong>，狀態為「Not Ready」。
-              建議補齊資料後重新上傳以獲得更佳梳理效果。
-            </span>
+            <span dangerouslySetInnerHTML={{ __html: t('routing.not_ready_warning', { score: score.toFixed(1) }) }} />
           </div>
         )}
 
@@ -75,18 +74,16 @@ export default function RoutingPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 20, marginBottom: 13,
             }}>🔧</div>
-            <h3 style={{ fontSize: 16, fontWeight: 650, marginBottom: 6 }}>以現況梳理</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 650, marginBottom: 6 }}>{t('routing.clean_current')}</h3>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-              使用目前資料直接進行批次梳理，適合品質尚可的資料集。
+              {t('routing.clean_current.desc')}
             </p>
-            {(
-              <div style={{
-                fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--green)',
-                fontWeight: 600, marginTop: 10,
-              }}>
-                ✓ 推薦選項
-              </div>
-            )}
+            <div style={{
+              fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--green)',
+              fontWeight: 600, marginTop: 10,
+            }}>
+              {t('routing.recommended')}
+            </div>
           </div>
 
           {/* Option 2: Re-upload */}
@@ -112,9 +109,9 @@ export default function RoutingPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 20, marginBottom: 13,
             }}>📤</div>
-            <h3 style={{ fontSize: 16, fontWeight: 650, marginBottom: 6 }}>補齊後重新上傳</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 650, marginBottom: 6 }}>{t('routing.reupload')}</h3>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-              修正原始資料中的問題後重新上傳，以獲得更高的品質分數。
+              {t('routing.reupload.desc')}
             </p>
           </div>
         </div>

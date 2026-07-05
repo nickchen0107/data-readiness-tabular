@@ -30,7 +30,7 @@ test.describe.serial('Cleaning & Export flow', () => {
    * Helper: upload → select sheet → assess → navigate to cleaning
    */
   async function uploadAndAssess(page: Page) {
-    await page.goto('/upload')
+    await page.goto('./upload')
     const fileInput = page.locator('input[type="file"]')
     await fileInput.setInputFiles(TEST_FILE_PATH)
     await page.waitForSelector('text=test-data.xlsx', { timeout: 15000 })
@@ -52,7 +52,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     await uploadAndAssess(page)
 
     // Navigate directly to cleaning page
-    await page.goto('/cleaning')
+    await page.goto('./cleaning')
     await page.waitForTimeout(2000)
   }
 
@@ -100,7 +100,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     await uploadAndAssess(page)
 
     // Navigate to cleaning page and run cleaning
-    await page.goto('/cleaning')
+    await page.goto('./cleaning')
     await page.waitForTimeout(2000)
 
     // Try to apply cleaning if button is available and enabled
@@ -124,7 +124,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     if (await nextBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await nextBtn.click()
     } else {
-      await page.goto('/export')
+      await page.goto('./export')
     }
 
     await page.waitForURL(/\/export/, { timeout: 15000 }).catch(() => {})
@@ -138,7 +138,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     await uploadAndAssess(page)
 
     // Navigate to cleaning and apply
-    await page.goto('/cleaning')
+    await page.goto('./cleaning')
     await page.waitForTimeout(2000)
 
     const applyBtn = page.getByRole('button', { name: /執行梳理|執行/ }).first()
@@ -160,7 +160,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     if (await nextBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await nextBtn.click()
     } else {
-      await page.goto('/export')
+      await page.goto('./export')
     }
 
     await page.waitForURL(/\/export/, { timeout: 15000 }).catch(() => {})
