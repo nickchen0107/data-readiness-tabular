@@ -11,6 +11,10 @@ interface EvidenceRecord {
   signature_status: string
   timestamp: string
   transaction_hash?: string
+  t3_cid?: string
+  t3_token_id?: string
+  t3_tx_id?: string
+  t3_minted_at?: string
 }
 
 export default function EvidencePage() {
@@ -99,81 +103,151 @@ export default function EvidencePage() {
             </div>
           </div>
         ) : (
-          /* Evidence card */
-          <div style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
-            {/* Dark header */}
-            <div style={{
-              background: 'var(--ink)', color: '#fff', padding: '24px 26px', textAlign: 'center',
-            }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Evidence card */}
+            <div style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
+              {/* Dark header */}
               <div style={{
-                width: 54, height: 54, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 26, margin: '0 auto 12px',
-              }}>🛡️</div>
-              <h3 style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em' }}>
-                {t('evidence.integrity_title')}
-              </h3>
-              <div style={{
-                fontFamily: 'var(--mono)', fontSize: 12, color: '#9fb8d4',
-                marginTop: 8, lineHeight: 1.6,
+                background: 'var(--ink)', color: '#fff', padding: '24px 26px', textAlign: 'center',
               }}>
-                Data Integrity Evidence Record
-                {isDemo && (
-                  <span style={{
-                    display: 'inline-block', marginLeft: 8,
-                    background: 'rgba(255,210,122,0.2)', color: '#ffd27a',
-                    padding: '2px 8px', borderRadius: 4, fontSize: 10,
+                <div style={{
+                  width: 54, height: 54, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 26, margin: '0 auto 12px',
+                }}>🛡️</div>
+                <h3 style={{ fontSize: 18, fontWeight: 650, letterSpacing: '-0.01em' }}>
+                  {t('evidence.integrity_title')}
+                </h3>
+                <div style={{
+                  fontFamily: 'var(--mono)', fontSize: 12, color: '#9fb8d4',
+                  marginTop: 8, lineHeight: 1.6,
+                }}>
+                  Data Integrity Evidence Record
+                  {isDemo && (
+                    <span style={{
+                      display: 'inline-block', marginLeft: 8,
+                      background: 'rgba(255,210,122,0.2)', color: '#ffd27a',
+                      padding: '2px 8px', borderRadius: 4, fontSize: 10,
+                    }}>
+                      DEMO
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Core evidence info */}
+              <div style={{ padding: '8px 26px 20px' }}>
+                {[
+                  { key: t('evidence.record_id'), value: record.record_id },
+                  { key: t('evidence.transaction_id'), value: record.transaction_hash || record.t3_tx_id || '-' },
+                  { key: t('evidence.signature_status'), value: statusLabel },
+                  { key: t('evidence.timestamp'), value: record.timestamp ? new Date(record.timestamp).toLocaleString('zh-TW') : '-' },
+                ].map((row) => (
+                  <div key={row.key} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '12px 0', borderBottom: '1px solid var(--line-soft)',
+                    fontSize: 13,
                   }}>
-                    DEMO
-                  </span>
-                )}
+                    <span style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>{row.key}</span>
+                    <span style={{
+                      fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink)',
+                      maxWidth: 360, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Evidence rows */}
-            <div style={{ padding: '8px 26px 20px' }}>
-              {[
-                { key: 'Record ID', value: record.record_id },
-                { key: 'Dataset Hash', value: record.dataset_hash },
-                { key: 'Log Hash', value: record.log_hash },
-                { key: 'Report Hash', value: record.report_hash },
-                { key: t('evidence.timestamp'), value: record.timestamp },
-                { key: t('evidence.signature_status'), value: statusLabel },
-              ].map((row) => (
-                <div key={row.key} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '12px 0', borderBottom: '1px solid var(--line-soft)',
-                  fontSize: 13,
-                }}>
-                  <span style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>{row.key}</span>
-                  <span style={{
-                    fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink)',
-                    maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {row.value}
-                  </span>
+            {/* Lineage: Data Artifacts */}
+            <div style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}>
+              <div style={{
+                padding: '16px 26px', borderBottom: '1px solid var(--line-soft)',
+                background: 'var(--panel)',
+              }}>
+                <h4 style={{ fontSize: 15, fontWeight: 650, margin: 0 }}>
+                  📦 {t('evidence.lineage_title')}
+                </h4>
+                <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
+                  {t('evidence.lineage_desc')}
+                </p>
+              </div>
+
+              <div style={{ padding: '4px 26px 16px' }}>
+                {/* Raw Dataset (processed Excel) */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16 }}>📊</span>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{t('evidence.artifact_raw_dataset')}</span>
+                    <span style={{
+                      fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--accent)',
+                      background: 'var(--accent-soft)', padding: '2px 6px', borderRadius: 4,
+                    }}>IPFS</span>
+                  </div>
+                  <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-soft)', lineHeight: 1.8 }}>
+                    <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>SHA-256:</span>{record.dataset_hash}</div>
+                    {record.t3_cid && <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>IPFS CID:</span>{record.t3_cid}</div>}
+                  </div>
                 </div>
-              ))}
+
+                {/* Processed Dataset (PDF report) */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--line-soft)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16 }}>📄</span>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{t('evidence.artifact_processed_report')}</span>
+                    <span style={{
+                      fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--accent)',
+                      background: 'var(--accent-soft)', padding: '2px 6px', borderRadius: 4,
+                    }}>IPFS</span>
+                  </div>
+                  <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-soft)', lineHeight: 1.8 }}>
+                    <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>SHA-256:</span>{record.report_hash}</div>
+                    {record.t3_token_id && <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>IPFS CID:</span>{record.t3_token_id}</div>}
+                  </div>
+                </div>
+
+                {/* Cleaning Log (hash-only) */}
+                <div style={{ padding: '14px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16 }}>📋</span>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{t('evidence.artifact_cleaning_log')}</span>
+                    <span style={{
+                      fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--ink-faint)',
+                      background: 'var(--panel)', padding: '2px 6px', borderRadius: 4, border: '1px solid var(--line)',
+                    }}>Hash Only</span>
+                  </div>
+                  <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-soft)', lineHeight: 1.8 }}>
+                    <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>SHA-256:</span>{record.log_hash}</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Flags */}
             <div style={{
               display: 'flex', gap: 9, flexWrap: 'wrap',
-              padding: '16px 26px', background: 'var(--green-soft)',
-              borderTop: '1px solid #cfe8d8',
+              padding: '16px 20px', background: 'var(--green-soft)',
+              borderRadius: 'var(--radius)', border: '1px solid #cfe8d8',
             }}>
               <span style={{
                 fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--green)',
                 fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                ✓ No sensitive data on-chain
+                ✓ {t('evidence.flag_no_sensitive')}
               </span>
               <span style={{
                 fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--green)',
                 fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                ✓ Integrity verifiable
+                ✓ {t('evidence.flag_verifiable')}
+              </span>
+              <span style={{
+                fontFamily: 'var(--mono)', fontSize: 11.5, color: 'var(--green)',
+                fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                ✓ {t('evidence.flag_immutable')}
               </span>
             </div>
           </div>

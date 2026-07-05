@@ -74,11 +74,12 @@ llm:
       若資料不足以回答問題，請明確說明缺少哪些資料，不要猜測。
     max_data_rows: 500  # 注入 prompt 的最大資料列數
 
-# --- 區塊鏈 Evidence 存證設定 ---
+# --- T3 TrustChain 區塊鏈存證設定 ---
 blockchain:
-  api_url: "http://localhost:9000"
-  timeout: "10s"
-  # 當區塊鏈不可用時的行為
+  api_url: "http://127.0.0.1:3000"
+  api_key: ""  # 請設定環境變數 T3_API_KEY 或在此填入平台 API Key
+  timeout: "30s"
+  # 當 T3 不可用時的行為
   fallback_mode: "demo"  # demo | error
   tool_version: "excel-tool-0.1"
   rule_version: "rules-0.1.0"
@@ -93,5 +94,5 @@ report:
     amber: "#b45309"
     rose: "#b42318"
   # 字體（需嵌入中文字體）
-  font_path: "/app/assets/fonts/NotoSansTC-Regular.ttf"
-  font_bold_path: "/app/assets/fonts/NotoSansTC-Bold.ttf"
+  font_path: "./assets/fonts/NotoSansTC-Regular.ttf"
+  font_bold_path: "./assets/fonts/NotoSansTC-Regular.ttf"

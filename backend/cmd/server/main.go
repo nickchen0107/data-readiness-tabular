@@ -103,11 +103,11 @@ func main() {
 	comparisonSvc := comparison.NewService(cleanRepo, assessRepo, assessSvc)
 	comparisonHandler := comparison.NewHandler(comparisonSvc)
 
-	// Evidence 模組初始化
-	blockchainHTTPClient := &http.Client{Timeout: cfg.GetBlockchainTimeout()}
-	blockchainClient := evidence.NewBlockchainClient(cfg.BlockchainURL, blockchainHTTPClient)
+	// Evidence 模組初始化（T3 TrustChain 串接）
+	t3HTTPClient := &http.Client{Timeout: cfg.GetBlockchainTimeout()}
+	t3Client := evidence.NewT3Client(cfg.BlockchainURL, cfg.T3APIKey, t3HTTPClient)
 	evidenceRepo := evidence.NewRepository(pool)
-	evidenceSvc := evidence.NewService(evidenceRepo, cleanRepo, exportSvc, blockchainClient, cfg)
+	evidenceSvc := evidence.NewService(evidenceRepo, cleanRepo, exportSvc, t3Client, cfg)
 	evidenceHandler := evidence.NewHandler(evidenceSvc)
 
 	// QA 模組初始化

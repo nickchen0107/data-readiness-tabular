@@ -15,6 +15,7 @@ type Config struct {
 	JWTSecret     string
 	GeminiAPIKey  string
 	BlockchainURL string
+	T3APIKey      string
 	ServerPort    string
 	UploadDir     string
 
@@ -105,6 +106,7 @@ type PromptConfig struct {
 
 type BlockchainConfig struct {
 	APIURL       string `yaml:"api_url"`
+	APIKey       string `yaml:"api_key"`
 	Timeout      string `yaml:"timeout"`
 	FallbackMode string `yaml:"fallback_mode"`
 	ToolVersion  string `yaml:"tool_version"`
@@ -147,6 +149,7 @@ func Load() *Config {
 	cfg.JWTSecret = getEnvOrDefault("JWT_SECRET", cfg.Auth.JWTSecret, "")
 	cfg.GeminiAPIKey = getEnvOrDefault("GEMINI_API_KEY", cfg.LLM.APIKey, "")
 	cfg.BlockchainURL = getEnvOrDefault("BLOCKCHAIN_API_URL", cfg.Blockchain.APIURL, "http://localhost:9000")
+	cfg.T3APIKey = getEnvOrDefault("T3_API_KEY", cfg.Blockchain.APIKey, "")
 	cfg.ServerPort = getEnvOrDefault("SERVER_PORT", cfg.Server.Port, "8080")
 	cfg.UploadDir = getEnvOrDefault("UPLOAD_DIR", cfg.Upload.Directory, "/app/uploads")
 

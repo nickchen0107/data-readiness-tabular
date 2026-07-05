@@ -6,6 +6,8 @@ backend/vendor/
 frontend/dist/
 backend/server
 backend/*.exe
+backend/*.exe~
+backend/assets/fonts/
 
 # Environment
 .env
