@@ -15,6 +15,7 @@ export interface IssueExample {
 
 export interface Issue {
   title: string;
+  title_en?: string;
   severity: string;
   affected_rows: number;
   description?: string;

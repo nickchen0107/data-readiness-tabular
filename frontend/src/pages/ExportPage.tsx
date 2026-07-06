@@ -29,6 +29,7 @@ interface AssessmentSummary {
   ai_query_readiness: number
   issues: Array<{
     title: string
+    title_en?: string
     severity: string
     description: string
     affected_rows: number
