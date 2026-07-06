@@ -390,16 +390,18 @@ export default function AssessmentPage() {
                             </span>
                           </div>
                           {/* Description — always visible */}
-                          {issue.description.includes('\n') ? (
+                          {(() => {
+                            const displayDesc = i18n.language === 'en' && issue.description_en ? issue.description_en : issue.description
+                            return displayDesc.includes('\n') ? (
                             <div style={{ paddingLeft: hasExamples ? 21 : 0 }}>
                               <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 4 }}>
-                                {issue.description.split('\n')[0]}
+                                {displayDesc.split('\n')[0]}
                               </div>
                               <ul style={{
                                 margin: 0, paddingLeft: 18, listStyleType: 'disc',
                                 paddingTop: 0,
                               }}>
-                                {issue.description.split('\n').slice(1).filter(Boolean).map((line, li) => (
+                                {displayDesc.split('\n').slice(1).filter(Boolean).map((line, li) => (
                                   <li key={li} style={{
                                     marginBottom: 2, fontSize: 13,
                                     color: 'var(--ink-soft)', lineHeight: 1.5,
@@ -414,9 +416,10 @@ export default function AssessmentPage() {
                               fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5,
                               paddingLeft: hasExamples ? 21 : 0,
                             }}>
-                              {issue.description.replace(/\n/g, ' ')}
+                              {displayDesc.replace(/\n/g, ' ')}
                             </div>
-                          )}
+                          )
+                          })()}}
                         </div>
                         {/* Affected count */}
                         {issue.affected_rows > 0 && (

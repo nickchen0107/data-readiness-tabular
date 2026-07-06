@@ -51,6 +51,8 @@ export default function UploadPage() {
     }
 
     setError('')
+    setUploadResult(null)
+    setSelectedSheet('')
     setUploading(true)
     setProgress(0)
 
@@ -222,7 +224,7 @@ export default function UploadPage() {
                   }} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-                  {progress >= 100 ? t('common.assessing') : `${t('common.upload_progress')} ${progress}%`}
+                  {progress >= 100 ? 'Processing file...' : `${t('common.upload_progress')} ${progress}%`}
                 </p>
               </div>
             )}

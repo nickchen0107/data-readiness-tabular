@@ -143,6 +143,34 @@ func (h *Handler) getUserID(c *gin.Context) (uuid.UUID, error) {
 	return userID, nil
 }
 
+// Download 下載上傳的檔案 GET /api/upload/:id/download
+func (h *Handler) Download(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		response.SendAuthError(c, "未認證")
+		return
+	}
+
+	uploadID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		response.SendValidationError(c, "無效的上傳 ID")
+		return
+	}
+
+	upload, err := h.service.repo.GetByIDAndUser(c.Request.Context(), uploadID, userID)
+	if err != nil {
+		if errors.Is(err, ErrUploadNotFound) {
+			response.SendNotFoundError(c, "上傳記錄不存在")
+			return
+		}
+		response.SendInternalError(c)
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename=\""+upload.Filename+"\"")
+	c.File(upload.FilePath)
+}
+
 // handleUploadError 處理上傳錯誤的 HTTP 回應
 func (h *Handler) handleUploadError(c *gin.Context, err error) {
 	switch {

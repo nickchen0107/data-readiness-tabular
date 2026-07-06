@@ -145,6 +145,7 @@ func main() {
 		protected.POST("/upload", uploadHandler.Upload)
 		protected.GET("/upload/:id/sheets", uploadHandler.GetSheets)
 		protected.POST("/upload/:id/select-sheet", uploadHandler.SelectSheet)
+		protected.GET("/upload/:id/download", uploadHandler.Download)
 
 		// Assessment routes
 		protected.POST("/assess", assessHandler.RunAssessment)

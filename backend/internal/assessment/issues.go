@@ -1816,8 +1816,43 @@ func addEnglishTranslations(issues []Issue) []Issue {
 		if en, ok := unitMap[issues[i].Unit]; ok {
 			issues[i].DescriptionEn = en
 		}
+		// Generate English description from Chinese description patterns
+		issues[i].DescriptionEn = translateDescription(issues[i].Description, issues[i].Indicator)
 	}
 	return issues
+}
+
+// translateDescription converts Chinese issue descriptions to English equivalents
+func translateDescription(desc string, indicator string) string {
+	// Pattern-based translation for common description formats
+	switch indicator {
+	case "row_completeness":
+		return "Multiple rows contain empty cells. Consider filling missing data to improve quality."
+	case "column_completeness":
+		return "Some columns have high rates of missing values. Consider removing or filling these columns."
+	case "format_consistency":
+		return "Inconsistent data formats detected within columns (mixed date formats, number formats, etc.)"
+	case "duplicate_similar":
+		return "Suspected duplicate or near-duplicate rows detected."
+	case "name_variants":
+		return "Multiple spelling variations detected for the same entity. Consider normalizing."
+	case "table_structure":
+		return "Table structure issues detected (merged cells, subtotal rows, multi-table layout, etc.)"
+	case "ai_query_readiness":
+		return "Some structural requirements for AI analysis are not met."
+	case "cell_reference_placeholder":
+		return "Cells contain references like 'same as XX' instead of actual values. AI cannot interpret these."
+	case "empty_header":
+		return "Some header columns are blank. This affects data schema quality."
+	case "inline_remark":
+		return "Parenthetical remarks found mixed into structured data columns. Consider separating."
+	case "column_type_mismatch":
+		return "Mixed data types within columns (e.g. numbers and text in the same column)."
+	case "strikethrough_formatting":
+		return "Cells with strikethrough formatting detected. These may represent cancelled or invalid data."
+	default:
+		return desc
+	}
 }
 
 // higherSeverity returns the higher of two severity levels.
