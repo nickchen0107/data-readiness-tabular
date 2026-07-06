@@ -28,15 +28,6 @@ export default function DashboardLandingPage() {
             {t('dashboard.desc')}
           </p>
         </div>
-        <div style={{
-          fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--ink-faint)',
-          border: '1px dashed var(--line)', borderRadius: 6, padding: '5px 9px',
-          whiteSpace: 'nowrap', background: 'var(--panel)', lineHeight: 1.5, textAlign: 'left',
-        }}>
-          <b style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>{t('dashboard.boundary_label')}</b><br />
-          {t('dashboard.boundary_line1')}<br />
-          {t('dashboard.boundary_line2')}
-        </div>
       </div>
 
       {/* Stage body */}

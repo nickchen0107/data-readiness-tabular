@@ -4,7 +4,7 @@ import HttpBackend from 'i18next-http-backend'
 import zhTW from './fallback/zh-TW.json'
 import en from './fallback/en.json'
 
-const savedLang = localStorage.getItem('language') || 'zh-TW'
+const savedLang = localStorage.getItem('language') || 'en'
 
 i18n
   .use(HttpBackend)

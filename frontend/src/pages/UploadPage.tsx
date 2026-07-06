@@ -184,7 +184,7 @@ export default function UploadPage() {
             />
 
             {/* Demo sample button */}
-            {!uploadedFile && !uploading && (
+            {!uploadResult && !uploading && (
               <div style={{ marginTop: 14, textAlign: 'center' }}>
                 <button
                   type="button"
