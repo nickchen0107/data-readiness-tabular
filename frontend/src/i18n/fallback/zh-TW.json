@@ -172,6 +172,7 @@
   "form.no_account": "還沒有帳號？",
   "upload.drop_title": "拖曳檔案至此處",
   "upload.drop_desc": "或點擊選取檔案（支援 .xlsx、.csv，上限 50MB）",
+  "upload.use_demo": "沒有檔案？使用示範資料體驗",
   "upload.file_info": "{{rows}} 列 × {{cols}} 欄",
   "rule.date_normalize": "統一日期格式",
   "rule.date_normalize.desc": "將各種日期寫法統一為 yyyy-MM-dd",

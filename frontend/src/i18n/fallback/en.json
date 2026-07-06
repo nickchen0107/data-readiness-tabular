@@ -154,6 +154,7 @@
   "form.no_account": "Don't have an account?",
   "upload.drop_title": "Drop file here",
   "upload.drop_desc": "Or click to select a file (.xlsx, .csv, max 50MB)",
+  "upload.use_demo": "No file? Try with demo data",
   "upload.file_info": "{{rows}} rows × {{cols}} columns",
   "rule.date_normalize": "Normalize Dates",
   "rule.date_normalize.desc": "Unify various date formats to yyyy-MM-dd",
