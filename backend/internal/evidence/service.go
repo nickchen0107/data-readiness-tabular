@@ -70,7 +70,7 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 	}
 
 	// Compute SHA-256 hashes
-	datasetHash, datasetB64, err := computeFileHashAndBase64(excelPath)
+	datasetHash, _, err := computeFileHashAndBase64(excelPath)
 	if err != nil {
 		return nil, fmt.Errorf("計算資料集雜湊失敗: %w", err)
 	}
@@ -80,7 +80,7 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		return nil, fmt.Errorf("計算日誌雜湊失敗: %w", err)
 	}
 
-	reportHash, reportB64, err := computeFileHashAndBase64(pdfPath)
+	reportHash, _, err := computeFileHashAndBase64(pdfPath)
 	if err != nil {
 		return nil, fmt.Errorf("計算報告雜湊失敗: %w", err)
 	}
@@ -98,20 +98,19 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		recordID = fmt.Sprintf("demo-%s", uuid.New().String()[:8])
 		status = "demo"
 	} else {
-		// 準備 artifacts
+		// 準備 artifacts — raw_dataset = 原始上傳的檔案, processed_dataset = 梳理後資料
+		// 大檔案使用 hash-only 避免 IPFS upload timeout
 		artifacts := []T3Artifact{
 			{
 				Type:          "raw_dataset",
 				Hash:          datasetHash,
-				StorageOption: "ipfs-upload",
-				Data:          datasetB64,
+				StorageOption: "hash-only",
 				Description:   fmt.Sprintf("梳理後資料集 (%d→%d 列)", session.RowsBefore, session.RowsAfter),
 			},
 			{
 				Type:          "processed_dataset",
 				Hash:          reportHash,
-				StorageOption: "ipfs-upload",
-				Data:          reportB64,
+				StorageOption: "hash-only",
 				Description:   "資料品質評估報告 (PDF)",
 			},
 			{
