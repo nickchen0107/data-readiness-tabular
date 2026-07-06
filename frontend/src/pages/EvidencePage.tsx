@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
 
@@ -18,7 +17,6 @@ interface EvidenceRecord {
 }
 
 export default function EvidencePage() {
-  const navigate = useNavigate()
   const { t } = useTranslation()
   const [sessionId, setSessionId] = useState('')
   const [submitting, setSubmitting] = useState(false)
