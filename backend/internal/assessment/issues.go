@@ -13,10 +13,12 @@ import (
 // Issue represents a detected data quality problem.
 type Issue struct {
 	Title        string          `json:"title"`         // 大分類標題
+	TitleEn      string          `json:"title_en"`      // English title
 	Severity     string          `json:"severity"`      // "High", "Medium", "Low"
 	AffectedRows int             `json:"affected_rows"`
 	Unit         string          `json:"unit"`          // "列受影響", "列", "組", "處"
 	Description  string          `json:"description"`   // 具體問題描述
+	DescriptionEn string         `json:"description_en"` // English description (simplified)
 	Examples     []IssueExample  `json:"examples"`      // 實際資料片段（Excel 截圖風格）
 	Indicator    string          `json:"indicator"`
 }
@@ -282,6 +284,9 @@ func DetectIssues(data *upload.SheetData, scores IndicatorScores) []Issue {
 
 	// Post-processing: merge issues with the same Title
 	issues = mergeIssuesByTitle(issues)
+
+	// Post-processing: add English titles and descriptions
+	issues = addEnglishTranslations(issues)
 
 	return issues
 }
@@ -1776,6 +1781,43 @@ func mergeIssuesByTitle(issues []Issue) []Issue {
 		result = append(result, *seen[title].issue)
 	}
 	return result
+}
+
+// addEnglishTranslations adds English title and description to issues
+func addEnglishTranslations(issues []Issue) []Issue {
+	titleMap := map[string]string{
+		"資料大量缺漏":         "Significant Data Gaps",
+		"部分資料缺漏":         "Partial Data Gaps",
+		"格式混用":           "Mixed Formats",
+		"日期格式不一致":        "Inconsistent Date Formats",
+		"疑似重複資料":         "Suspected Duplicate Data",
+		"客戶名稱不一致":        "Inconsistent Client Names",
+		"表格結構問題":         "Table Structure Issues",
+		"AI 應用完備度":       "AI Application Readiness",
+		"「同XX」引用未填入實際值":  "Cell References Not Filled",
+		"空白標題欄":          "Empty Header Columns",
+		"行內備註混入資料欄":      "Inline Remarks in Data Columns",
+		"欄位型別不一致":        "Inconsistent Column Types",
+		"儲存格含刪除線格式":      "Cells with Strikethrough Format",
+	}
+	unitMap := map[string]string{
+		"列受影響": "rows affected",
+		"列":    "rows",
+		"組":    "groups",
+		"處":    "issues",
+		"欄":    "columns",
+	}
+	for i := range issues {
+		if en, ok := titleMap[issues[i].Title]; ok {
+			issues[i].TitleEn = en
+		} else {
+			issues[i].TitleEn = issues[i].Title
+		}
+		if en, ok := unitMap[issues[i].Unit]; ok {
+			issues[i].DescriptionEn = en
+		}
+	}
+	return issues
 }
 
 // higherSeverity returns the higher of two severity levels.

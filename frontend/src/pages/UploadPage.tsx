@@ -218,10 +218,11 @@ export default function UploadPage() {
                   <div style={{
                     height: '100%', background: 'var(--accent)',
                     width: `${progress}%`, transition: 'width 0.3s ease',
+                    animation: progress >= 100 ? 'pulse 1.5s infinite' : 'none',
                   }} />
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 6, fontFamily: 'var(--mono)' }}>
-                  {t('common.upload_progress')} {progress}%
+                  {progress >= 100 ? t('common.assessing') : `${t('common.upload_progress')} ${progress}%`}
                 </p>
               </div>
             )}

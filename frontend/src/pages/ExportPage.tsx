@@ -196,7 +196,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
 
 export default function ExportPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [data, setData] = useState<ComparisonData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -506,7 +506,7 @@ export default function ExportPage() {
                                   transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
                                 }}>▶</span>
                               )}
-                              <span style={{ fontSize: 15, fontWeight: 650 }}>{issue.title}</span>
+                              <span style={{ fontSize: 15, fontWeight: 650 }}>{i18n.language === 'en' ? (issue.title_en || issue.title) : issue.title}</span>
                               <span style={{
                                 fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 7px',
                                 borderRadius: 4, fontWeight: 700, letterSpacing: '0.04em',
@@ -611,7 +611,7 @@ export default function ExportPage() {
                                 }}>▶</span>
                               )}
                               <span style={{ fontSize: 15, fontWeight: 650 }}>
-                                {issue.title || issue.indicator}
+                                {i18n.language === 'en' ? (issue.title_en || issue.title || issue.indicator) : (issue.title || issue.indicator)}
                               </span>
                               <span style={{
                                 fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 7px',

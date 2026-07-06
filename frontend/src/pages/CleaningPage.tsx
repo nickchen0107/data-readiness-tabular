@@ -138,6 +138,7 @@ export default function CleaningPage() {
 
     if (needsConfirm && !showConfirmPanel) {
       // Fetch preview
+      setCleaning(true)
       try {
         const res = await apiClient.post('/clean/preview-removals', { assessment_id: assessmentId })
         setPreviewData(res.data)
@@ -154,6 +155,8 @@ export default function CleaningPage() {
       } catch (err: unknown) {
         const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
         setError(axiosErr.response?.data?.error?.message || t('error.preview_failed'))
+      } finally {
+        setCleaning(false)
       }
       return
     }

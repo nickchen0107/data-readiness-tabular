@@ -28,8 +28,10 @@ interface IssueExample {
 
 interface Issue {
   title: string
+  title_en?: string
   severity: string
   description: string
+  description_en?: string
   affected_rows: number
   unit: string
   indicator: string
@@ -64,7 +66,7 @@ export default function AssessmentPage() {
   const [hoveredIndicator, setHoveredIndicator] = useState<string | null>(null)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   useEffect(() => {
     loadAssessment()
@@ -377,7 +379,7 @@ export default function AssessmentPage() {
                               }}>▶</span>
                             )}
                             <span style={{ fontSize: 15, fontWeight: 650 }}>
-                              {issue.title || issue.indicator}
+                              {i18n.language === 'en' ? (issue.title_en || issue.title || issue.indicator) : (issue.title || issue.indicator)}
                             </span>
                             <span style={{
                               fontFamily: 'var(--mono)', fontSize: 10, padding: '2px 7px',
