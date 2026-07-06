@@ -218,7 +218,11 @@ func (s *Service) ensureT3Token(ctx context.Context, userID uuid.UUID) (string, 
 		return "", fmt.Errorf("查詢 T3 帳號對應失敗: %w", err)
 	}
 
-	externalUserID := fmt.Sprintf("safeai_%s", userID.String()[:12])
+	externalUserID := fmt.Sprintf("safeai_tabular_%s", userID.String()[:12])
+	// Try to get actual username for better T3 mapping
+	if username, err := s.repo.GetUsernameByID(ctx, userID); err == nil && username != "" {
+		externalUserID = fmt.Sprintf("safeai_tabular_%s", username)
+	}
 
 	if mapping == nil {
 		// 首次使用，在 T3 註冊

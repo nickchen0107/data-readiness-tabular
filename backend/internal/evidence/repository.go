@@ -152,6 +152,16 @@ func (r *Repository) UpdateT3Token(ctx context.Context, localUserID uuid.UUID, t
 	return err
 }
 
+// GetUsernameByID 根據 user ID 取得帳號名稱
+func (r *Repository) GetUsernameByID(ctx context.Context, userID uuid.UUID) (string, error) {
+	var username string
+	err := r.pool.QueryRow(ctx, `SELECT username FROM users WHERE id = $1`, userID).Scan(&username)
+	if err != nil {
+		return "", err
+	}
+	return username, nil
+}
+
 // nilIfEmpty returns nil pointer for empty strings (for nullable DB columns)
 func nilIfEmpty(s string) *string {
 	if s == "" {

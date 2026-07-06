@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import apiClient from '../api/client'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,7 +15,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await apiClient.post('/auth/login', { email, password })
+      const res = await apiClient.post('/auth/login', { username, password })
       setError('')
       await login(res.data.token)
       navigate('/landing')
@@ -65,8 +65,8 @@ export default function LoginPage() {
             </label>
             <input
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="請輸入使用者名稱"
               required
             />

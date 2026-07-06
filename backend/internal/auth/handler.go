@@ -46,9 +46,9 @@ func (h *Handler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"id":         user.ID,
-		"email":      user.Email,
-		"created_at": user.CreatedAt,
+		"id":       user.ID,
+		"username": user.Username,
+		"email":    user.Email,
 	})
 }
 
@@ -56,13 +56,24 @@ func (h *Handler) Register(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.SendValidationError(c, "請提供有效的帳號和密碼")
-		return
+		// Backward compat: try "email" field if "username" is empty
+		type legacyReq struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+		var lr legacyReq
+		if err2 := c.ShouldBindJSON(&lr); err2 == nil && lr.Email != "" {
+			req.Username = lr.Email
+			req.Password = lr.Password
+		} else {
+			response.SendValidationError(c, "請提供有效的帳號和密碼")
+			return
+		}
 	}
 
 	// 檢查速率限制
 	if h.rateLimiter != nil {
-		blocked, err := h.rateLimiter.IsBlocked(c.Request.Context(), req.Email)
+		blocked, err := h.rateLimiter.IsBlocked(c.Request.Context(), req.Username)
 		if err == nil && blocked {
 			c.JSON(http.StatusTooManyRequests, response.ErrorResponse{
 				Error: response.ErrorDetail{
@@ -76,17 +87,15 @@ func (h *Handler) Login(c *gin.Context) {
 
 	tokenResp, err := h.service.Login(c.Request.Context(), req)
 	if err != nil {
-		// 記錄失敗嘗試
 		if h.rateLimiter != nil {
-			_ = h.rateLimiter.RecordAttempt(c.Request.Context(), req.Email, false)
+			_ = h.rateLimiter.RecordAttempt(c.Request.Context(), req.Username, false)
 		}
 		h.handleLoginError(c, err)
 		return
 	}
 
-	// 記錄成功嘗試
 	if h.rateLimiter != nil {
-		_ = h.rateLimiter.RecordAttempt(c.Request.Context(), req.Email, true)
+		_ = h.rateLimiter.RecordAttempt(c.Request.Context(), req.Username, true)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -97,7 +106,6 @@ func (h *Handler) Login(c *gin.Context) {
 
 // Logout 處理使用者登出 POST /api/auth/logout
 func (h *Handler) Logout(c *gin.Context) {
-	// 從 context 取得 token（由 JWT middleware 設定）
 	tokenVal, exists := c.Get("token")
 	if !exists {
 		response.SendAuthError(c, "未提供認證令牌")
@@ -109,7 +117,6 @@ func (h *Handler) Logout(c *gin.Context) {
 		return
 	}
 
-	// 將 token 加入黑名單（設定過期時間為 24 小時後，與 JWT 預設過期一致）
 	if h.blacklist != nil {
 		h.blacklist.Add(token, h.service.getTokenExpiry())
 	}
@@ -143,14 +150,13 @@ func (h *Handler) GetMe(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":         user.ID,
-		"email":      user.Email,
-		"role":       user.Role,
-		"created_at": user.CreatedAt,
+		"id":       user.ID,
+		"username": user.Username,
+		"email":    user.Email,
+		"role":     user.Role,
 	})
 }
 
-// handleRegisterError 處理註冊錯誤對應的 HTTP 回應
 func (h *Handler) handleRegisterError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, ErrInvalidEmail):
@@ -159,7 +165,7 @@ func (h *Handler) handleRegisterError(c *gin.Context, err error) {
 		response.SendValidationError(c, err.Error())
 	case errors.Is(err, ErrPasswordTooLong):
 		response.SendValidationError(c, err.Error())
-	case errors.Is(err, ErrEmailAlreadyExists):
+	case errors.Is(err, ErrUsernameAlreadyExists):
 		c.JSON(http.StatusConflict, response.ErrorResponse{
 			Error: response.ErrorDetail{
 				Code:    "CONFLICT",
@@ -171,11 +177,9 @@ func (h *Handler) handleRegisterError(c *gin.Context, err error) {
 	}
 }
 
-// handleLoginError 處理登入錯誤對應的 HTTP 回應
 func (h *Handler) handleLoginError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, ErrUserNotFound), errors.Is(err, ErrInvalidCredentials):
-		// 不揭露是帳號不存在還是密碼錯誤
 		response.SendAuthError(c, "帳號或密碼錯誤")
 	default:
 		response.SendInternalError(c)

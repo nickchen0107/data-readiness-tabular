@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import apiClient from '../api/client'
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -27,9 +27,9 @@ export default function RegisterPage() {
 
     setLoading(true)
     try {
-      await apiClient.post('/auth/register', { email, password })
+      await apiClient.post('/auth/register', { username, password })
       // Auto-login after registration
-      const loginRes = await apiClient.post('/auth/login', { email, password })
+      const loginRes = await apiClient.post('/auth/login', { username, password })
       await login(loginRes.data.token)
       navigate('/landing')
     } catch (err: unknown) {
@@ -78,8 +78,8 @@ export default function RegisterPage() {
             </label>
             <input
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="請輸入使用者名稱（3 字元以上）"
               required
             />

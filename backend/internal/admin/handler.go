@@ -57,7 +57,7 @@ func (h *Handler) ListUsers(c *gin.Context) {
 
 	type userItem struct {
 		ID        uuid.UUID `json:"id"`
-		Email     string    `json:"email"`
+		Username  string    `json:"username"`
 		Role      string    `json:"role"`
 		UsedCount int       `json:"used_count"`
 		Remaining int       `json:"remaining"`
@@ -73,7 +73,7 @@ func (h *Handler) ListUsers(c *gin.Context) {
 		}
 		items = append(items, userItem{
 			ID:        u.ID,
-			Email:     u.Email,
+			Username:  u.Username,
 			Role:      u.Role,
 			UsedCount: usedCount,
 			Remaining: remaining,

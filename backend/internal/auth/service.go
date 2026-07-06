@@ -17,14 +17,14 @@ func NewService(repo *Repository, jwtSecret string) *Service {
 	return &Service{
 		repo:      repo,
 		jwtSecret: jwtSecret,
-		jwtExpiry: 24 * time.Hour, // 預設 24 小時
+		jwtExpiry: 24 * time.Hour,
 	}
 }
 
 // Register 註冊新使用者
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*User, error) {
-	// 1. 驗證 email 格式
-	if err := ValidateEmail(req.Email); err != nil {
+	// 1. 驗證帳號格式
+	if err := ValidateEmail(req.Username); err != nil {
 		return nil, err
 	}
 
@@ -40,24 +40,23 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*User, err
 	}
 
 	// 4. 建立使用者
-	user, err := s.repo.CreateUser(ctx, req.Email, hash)
+	user, err := s.repo.CreateUser(ctx, req.Username, req.Email, hash)
 	if err != nil {
 		return nil, err
 	}
 
-	// 5. 回傳建立的使用者
 	return user, nil
 }
 
-// getTokenExpiry 回傳 token 的預設過期時間（從現在起算）
+// getTokenExpiry 回傳 token 的預設過期時間
 func (s *Service) getTokenExpiry() time.Time {
 	return time.Now().Add(s.jwtExpiry)
 }
 
-// Login 使用者登入，驗證憑證並回傳 JWT
+// Login 使用者登入
 func (s *Service) Login(ctx context.Context, req LoginRequest) (*TokenResponse, error) {
-	// 1. 根據 email 查詢使用者
-	user, err := s.repo.GetByEmail(ctx, req.Email)
+	// 1. 根據帳號查詢使用者
+	user, err := s.repo.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +72,6 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*TokenResponse, 
 		return nil, err
 	}
 
-	// 4. 回傳 token
 	return &TokenResponse{
 		Token:     token,
 		ExpiresAt: expiresAt,

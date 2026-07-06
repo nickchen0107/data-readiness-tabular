@@ -40,7 +40,7 @@ func (rl *RateLimiter) IsBlocked(ctx context.Context, email string) (bool, error
 	var count int
 	err := rl.pool.QueryRow(ctx,
 		`SELECT COUNT(*) FROM login_attempts 
-		 WHERE email = $1 AND success = false AND attempted_at > $2`,
+		 WHERE username = $1 AND success = false AND attempted_at > $2`,
 		email, since,
 	).Scan(&count)
 	if err != nil {
@@ -53,7 +53,7 @@ func (rl *RateLimiter) IsBlocked(ctx context.Context, email string) (bool, error
 // RecordAttempt 記錄登入嘗試（成功或失敗）
 func (rl *RateLimiter) RecordAttempt(ctx context.Context, email string, success bool) error {
 	_, err := rl.pool.Exec(ctx,
-		`INSERT INTO login_attempts (email, success, attempted_at) VALUES ($1, $2, $3)`,
+		`INSERT INTO login_attempts (username, success, attempted_at) VALUES ($1, $2, $3)`,
 		email, success, time.Now(),
 	)
 	return err
