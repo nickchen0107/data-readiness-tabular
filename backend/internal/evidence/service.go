@@ -231,19 +231,10 @@ func (s *Service) ensureT3Token(ctx context.Context, userID uuid.UUID) (string, 
 	}
 
 	// Token 過期，重新 register 取得新 token
-	// T3 文件說：Token 過期後需重新呼叫 register 取得新 token
+	// T3 現在支援重複 register 回傳新 token（不再回 409）
 	regResp, err := s.t3Client.Register(ctx, externalUserID, "SAFE-AI User")
 	if err != nil {
-		if errors.Is(err, ErrT3UserExists) {
-			// 使用者已存在但 token 過期 — 用新 externalUserID 重新註冊
-			newExternalID := fmt.Sprintf("safeai_%s_%d", userID.String()[:8], time.Now().Unix())
-			regResp, err = s.t3Client.Register(ctx, newExternalID, "SAFE-AI User")
-			if err != nil {
-				return "", fmt.Errorf("T3 token 刷新失敗: %w", err)
-			}
-		} else {
-			return "", fmt.Errorf("T3 註冊失敗: %w", err)
-		}
+		return "", fmt.Errorf("T3 token 刷新失敗: %w", err)
 	}
 
 	// 更新 Token
@@ -257,17 +248,7 @@ func (s *Service) ensureT3Token(ctx context.Context, userID uuid.UUID) (string, 
 func (s *Service) registerAndSaveT3User(ctx context.Context, userID uuid.UUID, externalUserID string) (string, error) {
 	regResp, err := s.t3Client.Register(ctx, externalUserID, "SAFE-AI User")
 	if err != nil {
-		if errors.Is(err, ErrT3UserExists) {
-			// 使用者在 T3 已存在，用新的 externalUserId 重試
-			newExternalID := fmt.Sprintf("safeai_%s_%d", userID.String()[:8], time.Now().Unix())
-			regResp, err = s.t3Client.Register(ctx, newExternalID, "SAFE-AI User")
-			if err != nil {
-				return "", fmt.Errorf("T3 註冊失敗（重試）: %w", err)
-			}
-			externalUserID = newExternalID
-		} else {
-			return "", fmt.Errorf("T3 註冊失敗: %w", err)
-		}
+		return "", fmt.Errorf("T3 註冊失敗: %w", err)
 	}
 
 	// 儲存對應關係
@@ -276,7 +257,7 @@ func (s *Service) registerAndSaveT3User(ctx context.Context, userID uuid.UUID, e
 		ID:                  uuid.New(),
 		LocalUserID:         userID,
 		T3Username:          externalUserID,
-		T3PasswordEncrypted: regResp.IdentityRef, // 儲存 identityRef
+		T3PasswordEncrypted: regResp.IdentityRef,
 		T3Token:             regResp.APIToken,
 		T3TokenExpiresAt:    &expiresAt,
 	}
