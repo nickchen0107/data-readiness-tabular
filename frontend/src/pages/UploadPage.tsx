@@ -199,8 +199,8 @@ export default function UploadPage() {
                     }
                   }}
                   style={{
-                    background: 'none', border: '1px dashed var(--line)', borderRadius: 8,
-                    padding: '8px 16px', fontSize: 12.5, color: 'var(--ink-faint)',
+                    background: 'var(--accent-soft)', border: '1.5px solid var(--accent)', borderRadius: 8,
+                    padding: '8px 16px', fontSize: 13, fontWeight: 550, color: 'var(--accent)',
                     cursor: 'pointer', transition: 'all 0.15s',
                   }}
                 >
@@ -229,11 +229,15 @@ export default function UploadPage() {
         ) : (
           <>
             {/* File info chip */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              border: '1px solid var(--line)', borderRadius: 'var(--radius)',
-              padding: '13px 16px', background: 'var(--paper)',
-            }}>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+                padding: '13px 16px', background: 'var(--paper)',
+                cursor: 'pointer',
+              }}
+            >
               <div style={{
                 width: 34, height: 34, borderRadius: 7,
                 background: 'var(--green-soft)', color: 'var(--green)',
@@ -249,18 +253,30 @@ export default function UploadPage() {
                 </div>
               </div>
               <span className="pill ready">✓ {t('status.upload_complete')}</span>
-              <button
-                type="button"
-                onClick={() => { setUploadResult(null); setSelectedSheet(''); setError(''); }}
+              <span
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
                   fontSize: 12, color: 'var(--ink-faint)', textDecoration: 'underline',
                   marginLeft: 8,
                 }}
               >
                 {t('btn.reupload')}
-              </button>
+              </span>
+              <a
+                href={`/data-readiness-tabular/api/upload/${uploadResult.id}/download`}
+                download={uploadResult.filename}
+                style={{ fontSize: 12, color: 'var(--accent)', marginLeft: 8, textDecoration: 'underline' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                ↓ Download
+              </a>
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.csv"
+              onChange={onFileSelect}
+              style={{ display: 'none' }}
+            />
 
             {/* Sheet selection */}
             {uploadResult.sheet_names.length > 1 && (

@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import apiClient from '../api/client'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -21,7 +23,7 @@ export default function LoginPage() {
       navigate('/landing')
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }
-      setError(axiosErr.response?.data?.error?.message || '登入失敗，請檢查帳號密碼')
+      setError(axiosErr.response?.data?.error?.message || t('error.login_failed'))
     } finally {
       setLoading(false)
     }
@@ -42,9 +44,9 @@ export default function LoginPage() {
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             fontWeight: 700, fontSize: 19, fontFamily: 'var(--mono)', marginBottom: 14,
           }}>S</div>
-          <h1 style={{ fontSize: 20, fontWeight: 650, marginBottom: 4 }}>登入</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 650, marginBottom: 4 }}>{t('page.login.title')}</h1>
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>
-            請輸入您的帳號密碼以登入系統
+            {t('page.login.desc')}
           </p>
         </div>
 
@@ -61,25 +63,25 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 550, marginBottom: 6 }}>
-              使用者名稱
+              {t('form.email')}
             </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="請輸入使用者名稱"
+              placeholder={t('form.email_placeholder')}
               required
             />
           </div>
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 550, marginBottom: 6 }}>
-              密碼
+              {t('form.password')}
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="請輸入密碼"
+              placeholder={t('form.password_placeholder')}
               required
             />
           </div>
@@ -89,12 +91,12 @@ export default function LoginPage() {
             disabled={loading}
             style={{ width: '100%', justifyContent: 'center', padding: '12px 18px' }}
           >
-            {loading ? '登入中...' : '登入'}
+            {loading ? t('common.login_progress') : t('btn.login')}
           </button>
         </form>
 
         <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13.5, color: 'var(--ink-soft)' }}>
-          還沒有帳號？<Link to="/register">前往註冊</Link>
+          {t('form.no_account')}<Link to="/register">{t('btn.go_register')}</Link>
         </p>
       </div>
     </div>
