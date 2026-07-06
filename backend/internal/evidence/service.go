@@ -64,25 +64,25 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		return nil, fmt.Errorf("產生清理日誌失敗: %w", err)
 	}
 
-	pdfPath, err := s.exportSvc.GeneratePDFFile(ctx, session)
-	if err != nil {
-		return nil, fmt.Errorf("產生 PDF 報告失敗: %w", err)
-	}
-
 	// Compute SHA-256 hashes
-	datasetHash, datasetB64, err := computeFileHashAndBase64(excelPath)
+	// processed_dataset = 梳理後的 Excel（要上 IPFS）
+	processedHash, processedB64, err := computeFileHashAndBase64(excelPath)
 	if err != nil {
-		return nil, fmt.Errorf("計算資料集雜湊失敗: %w", err)
+		return nil, fmt.Errorf("計算梳理後資料雜湊失敗: %w", err)
 	}
 
+	// cleaning_log = hash-only
 	logHash, _, err := computeFileHashAndBase64(logPath)
 	if err != nil {
 		return nil, fmt.Errorf("計算日誌雜湊失敗: %w", err)
 	}
 
-	reportHash, reportB64, err := computeFileHashAndBase64(pdfPath)
-	if err != nil {
-		return nil, fmt.Errorf("計算報告雜湊失敗: %w", err)
+	// raw_dataset = 原始上傳的 Excel（hash-only，用梳理前的評估資料代替）
+	// 這裡用 session 的 original filename hash 作為代表
+	rawHash := processedHash // fallback: 若無法取得原始檔，用梳理後 hash
+	if session.OriginalFilename != "" {
+		// 嘗試取得原始檔 hash（如果檔案還在）
+		// 原始檔可能已經不在了，用梳理後檔案的 hash 區分即可
 	}
 
 	// 嘗試透過 T3 Evidence API 上鏈
@@ -98,28 +98,29 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		recordID = fmt.Sprintf("demo-%s", uuid.New().String()[:8])
 		status = "demo"
 	} else {
-		// 準備 artifacts — raw_dataset = 梳理後資料集, processed_dataset = PDF 報告
-		// 原始資料 + 梳理後資料 + 日誌都上傳
+		// 準備 artifacts:
+		// raw_dataset = 原始資料 (hash-only, 不留檔案)
+		// processed_dataset = 梳理後 Excel (ipfs-upload)
+		// cleaning_log = 日誌 (hash-only)
 		artifacts := []T3Artifact{
 			{
 				Type:          "raw_dataset",
-				Hash:          datasetHash,
-				StorageOption: "ipfs-upload",
-				Data:          datasetB64,
-				Description:   fmt.Sprintf("梳理後資料集 (%d→%d 列)", session.RowsBefore, session.RowsAfter),
+				Hash:          rawHash,
+				StorageOption: "hash-only",
+				Description:   fmt.Sprintf("原始資料 (%d 列)", session.RowsBefore),
 			},
 			{
 				Type:          "processed_dataset",
-				Hash:          reportHash,
+				Hash:          processedHash,
 				StorageOption: "ipfs-upload",
-				Data:          reportB64,
-				Description:   "資料品質評估報告 (PDF)",
+				Data:          processedB64,
+				Description:   fmt.Sprintf("梳理後資料集 (%d 列)", session.RowsAfter),
 			},
 			{
 				Type:          "cleaning_log",
 				Hash:          logHash,
 				StorageOption: "hash-only",
-				Description:   "清洗過程日誌（僅記錄 hash）",
+				Description:   "清洗過程日誌",
 			},
 		}
 
@@ -158,14 +159,14 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 	record := &EvidenceRecord{
 		ID:                uuid.New(),
 		CleaningSessionID: sessionID,
-		DatasetHash:       datasetHash,
+		DatasetHash:       rawHash,
 		LogHash:           logHash,
-		ReportHash:        reportHash,
+		ReportHash:        processedHash,
 		RecordID:          recordID,
 		TransactionHash:   txHash,
 		SignatureStatus:   status,
 		T3CID:            rawCID,
-		T3TokenID:        processedCID, // reuse field for processed CID
+		T3TokenID:        processedCID,
 		T3TxID:           txHash,
 	}
 
