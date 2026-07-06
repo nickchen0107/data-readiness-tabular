@@ -14,34 +14,42 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/safe-ai/excel-brushing-tool/internal/assessment"
 	"github.com/safe-ai/excel-brushing-tool/internal/cleaning"
 	"github.com/safe-ai/excel-brushing-tool/internal/export"
+	"github.com/safe-ai/excel-brushing-tool/internal/upload"
 	"github.com/safe-ai/excel-brushing-tool/pkg/config"
 )
 
 // Service handles evidence submission and retrieval
 type Service struct {
-	repo      *Repository
-	cleanRepo *cleaning.Repository
-	exportSvc *export.Service
-	t3Client  *T3Client
-	cfg       *config.Config
+	repo       *Repository
+	cleanRepo  *cleaning.Repository
+	assessRepo *assessment.Repository
+	uploadRepo *upload.Repository
+	exportSvc  *export.Service
+	t3Client   *T3Client
+	cfg        *config.Config
 }
 
 // NewService creates a new evidence Service
 func NewService(
 	repo *Repository,
 	cleanRepo *cleaning.Repository,
+	assessRepo *assessment.Repository,
+	uploadRepo *upload.Repository,
 	exportSvc *export.Service,
 	t3Client *T3Client,
 	cfg *config.Config,
 ) *Service {
 	return &Service{
-		repo:      repo,
-		cleanRepo: cleanRepo,
-		exportSvc: exportSvc,
-		t3Client:  t3Client,
-		cfg:       cfg,
+		repo:       repo,
+		cleanRepo:  cleanRepo,
+		assessRepo: assessRepo,
+		uploadRepo: uploadRepo,
+		exportSvc:  exportSvc,
+		t3Client:   t3Client,
+		cfg:        cfg,
 	}
 }
 
@@ -77,12 +85,22 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		return nil, fmt.Errorf("計算日誌雜湊失敗: %w", err)
 	}
 
-	// raw_dataset = 原始上傳的 Excel（hash-only，用梳理前的評估資料代替）
-	// 這裡用 session 的 original filename hash 作為代表
-	rawHash := processedHash // fallback: 若無法取得原始檔，用梳理後 hash
-	if session.OriginalFilename != "" {
-		// 嘗試取得原始檔 hash（如果檔案還在）
-		// 原始檔可能已經不在了，用梳理後檔案的 hash 區分即可
+	// raw_dataset = 原始上傳的 Excel（hash-only）
+	// 透過 session → assessment → upload 取得原始檔路徑
+	var rawHash string
+	assess, assessErr := s.assessRepo.GetByID(ctx, session.AssessmentID)
+	if assessErr == nil {
+		up, upErr := s.uploadRepo.GetByID(ctx, assess.UploadID)
+		if upErr == nil {
+			if h, hErr := computeFileHash(up.FilePath); hErr == nil {
+				rawHash = h
+			}
+		}
+	}
+	if rawHash == "" {
+		// fallback: 用 session ID 產生一個 deterministic hash
+		sum := sha256.Sum256([]byte("raw:" + session.ID.String()))
+		rawHash = hex.EncodeToString(sum[:])
 	}
 
 	// 嘗試透過 T3 Evidence API 上鏈

@@ -176,23 +176,22 @@ export default function EvidencePage() {
               </div>
 
               <div style={{ padding: '4px 26px 16px' }}>
-                {/* Raw Dataset (processed Excel) */}
+                {/* Raw Dataset (原始上傳的資料 - hash only) */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--line-soft)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <span style={{ fontSize: 16 }}>📊</span>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{t('evidence.artifact_raw_dataset')}</span>
                     <span style={{
-                      fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--accent)',
-                      background: 'var(--accent-soft)', padding: '2px 6px', borderRadius: 4,
-                    }}>IPFS</span>
+                      fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--ink-faint)',
+                      background: 'var(--panel)', padding: '2px 6px', borderRadius: 4, border: '1px solid var(--line)',
+                    }}>Hash Only</span>
                   </div>
                   <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-soft)', lineHeight: 1.8 }}>
                     <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>SHA-256:</span>{record.dataset_hash}</div>
-                    {record.t3_cid && <div><span style={{ color: 'var(--ink-faint)', marginRight: 8 }}>IPFS CID:</span>{record.t3_cid}</div>}
                   </div>
                 </div>
 
-                {/* Processed Dataset (PDF report) */}
+                {/* Processed Dataset (梳理後資料 - IPFS) */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--line-soft)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <span style={{ fontSize: 16 }}>📄</span>

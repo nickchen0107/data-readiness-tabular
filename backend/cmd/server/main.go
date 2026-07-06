@@ -107,7 +107,7 @@ func main() {
 	t3HTTPClient := &http.Client{Timeout: cfg.GetBlockchainTimeout()}
 	t3Client := evidence.NewT3Client(cfg.BlockchainURL, cfg.T3APIKey, t3HTTPClient)
 	evidenceRepo := evidence.NewRepository(pool)
-	evidenceSvc := evidence.NewService(evidenceRepo, cleanRepo, exportSvc, t3Client, cfg)
+	evidenceSvc := evidence.NewService(evidenceRepo, cleanRepo, assessRepo, uploadRepo, exportSvc, t3Client, cfg)
 	evidenceHandler := evidence.NewHandler(evidenceSvc)
 
 	// QA 模組初始化
