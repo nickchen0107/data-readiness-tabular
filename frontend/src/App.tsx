@@ -14,7 +14,6 @@ import RoutingPage from './pages/RoutingPage'
 import CleaningPage from './pages/CleaningPage'
 import ExportPage from './pages/ExportPage'
 import EvidencePage from './pages/EvidencePage'
-import QAPage from './pages/QAPage'
 import SettingsPage from './pages/SettingsPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import UsersPage from './pages/admin/UsersPage'
@@ -45,7 +44,6 @@ function App() {
             <Route path="/cleaning" element={<CleaningPage />} />
             <Route path="/export" element={<ExportPage />} />
             <Route path="/evidence" element={<EvidencePage />} />
-            <Route path="/qa" element={<QAPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
           <Route

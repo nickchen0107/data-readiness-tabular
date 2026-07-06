@@ -12,7 +12,6 @@ const STEP_KEYS = [
   'stepper.clean',
   'stepper.export',
   'stepper.evidence',
-  'stepper.qa',
 ] as const
 
 const STEP_PATHS = [
@@ -23,10 +22,9 @@ const STEP_PATHS = [
   '/cleaning',
   '/export',
   '/evidence',
-  '/qa',
 ]
 
-const STEP_SUBS = ['Landing', 'Upload', 'Assess', 'Route', 'Clean', 'Export', 'Evidence', 'QA']
+const STEP_SUBS = ['Landing', 'Upload', 'Assess', 'Route', 'Clean', 'Export', 'Evidence']
 
 export default function Layout() {
   const { user, logout } = useAuth()

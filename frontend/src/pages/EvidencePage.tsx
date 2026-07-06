@@ -263,9 +263,6 @@ export default function EvidencePage() {
           <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
             {t('evidence.complete_hint')}
           </span>
-          <button className="btn btn-primary" onClick={() => navigate('/qa')}>
-            {t('btn.next_step')} →
-          </button>
         </div>
       )}
     </div>

@@ -249,6 +249,17 @@ export default function UploadPage() {
                 </div>
               </div>
               <span className="pill ready">✓ {t('status.upload_complete')}</span>
+              <button
+                type="button"
+                onClick={() => { setUploadResult(null); setSelectedSheet(''); setError(''); }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 12, color: 'var(--ink-faint)', textDecoration: 'underline',
+                  marginLeft: 8,
+                }}
+              >
+                {t('btn.reupload')}
+              </button>
             </div>
 
             {/* Sheet selection */}
