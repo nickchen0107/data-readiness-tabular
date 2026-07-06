@@ -28,19 +28,12 @@ WORKDIR /app
 RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 
 # Download Noto Sans TC Chinese font for PDF report generation
-# go-pdf/fpdf requires static .ttf/.otf files
-# Using GitHub releases from the official notofonts/noto-cjk project
-RUN mkdir -p /app/assets/fonts && \
-    apk add --no-cache --virtual .font-deps wget unzip ca-certificates && \
-    wget --max-redirect=5 -q -O /tmp/NotoSansTC.zip \
-      "https://github.com/notofonts/noto-cjk/releases/download/Sans2.004/09_NotoSansCJKtc.zip" && \
-    unzip -q -j /tmp/NotoSansTC.zip "NotoSansCJKtc-Regular.otf" -d /app/assets/fonts/ && \
-    unzip -q -j /tmp/NotoSansTC.zip "NotoSansCJKtc-Bold.otf" -d /app/assets/fonts/ && \
-    mv /app/assets/fonts/NotoSansCJKtc-Regular.otf /app/assets/fonts/NotoSansTC-Regular.ttf && \
-    mv /app/assets/fonts/NotoSansCJKtc-Bold.otf /app/assets/fonts/NotoSansTC-Bold.ttf && \
-    rm -f /tmp/NotoSansTC.zip && \
-    apk del .font-deps || \
-    echo "WARNING: Font download failed, PDF Chinese support unavailable"
+# go-pdf/fpdf requires TrueType (.ttf) fonts — OTF/CFF (magic: OTTO) is NOT supported
+RUN mkdir -p /app/assets/fonts
+
+# Copy font files from source (included in repo for reliability)
+COPY assets/fonts/NotoSansTC-Regular.ttf /app/assets/fonts/NotoSansTC-Regular.ttf
+COPY assets/fonts/NotoSansTC-Bold.ttf /app/assets/fonts/NotoSansTC-Bold.ttf
 
 # Copy binary from builder
 COPY --from=builder /app/server /app/server
