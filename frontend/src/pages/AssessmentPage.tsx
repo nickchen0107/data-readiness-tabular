@@ -419,7 +419,7 @@ export default function AssessmentPage() {
                               {displayDesc.replace(/\n/g, ' ')}
                             </div>
                           )
-                          })()}}
+                          })()}
                         </div>
                         {/* Affected count */}
                         {issue.affected_rows > 0 && (
