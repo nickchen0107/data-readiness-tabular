@@ -2036,9 +2036,9 @@ func buildNameVariantExamples(data *upload.SheetData, companyCol int, groups []n
 	return examples
 }
 
-// cellReferencePlaceholderRe matches cells containing "同" followed by a cell reference.
-// Allows optional whitespace, mixed case letters (e.g., 同AH2, 同 ah2, 同aH2).
-var cellReferencePlaceholderRe = regexp.MustCompile(`^同\s*[A-Za-z]+\d+$`)
+// cellReferencePlaceholderRe matches cells containing "同" or "Same as" followed by a cell reference.
+// Allows optional whitespace, mixed case letters (e.g., 同AH2, 同 ah2, Same as AH2, same as B3).
+var cellReferencePlaceholderRe = regexp.MustCompile(`(?i)^(同\s*|same\s+as\s+)[A-Za-z]+\d+$`)
 
 // DetectCellReferencePlaceholders detects cells containing "同" followed by a cell reference
 // (e.g., 同AH2, 同AI6). These are human-entered placeholders meaning "same as cell XX"
