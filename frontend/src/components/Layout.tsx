@@ -112,7 +112,7 @@ export default function Layout() {
                   display: 'flex', alignItems: 'center', gap: 9,
                   paddingRight: 8, whiteSpace: 'nowrap',
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  opacity: isDisabled ? 0.3 : isActive ? 1 : isDone ? 0.8 : 0.45,
+                  opacity: isActive ? 1 : isDisabled ? 0.3 : isDone ? 0.8 : 0.45,
                   transition: 'opacity 0.25s',
                 }}
               >
