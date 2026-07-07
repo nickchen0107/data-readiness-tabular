@@ -70,7 +70,7 @@ test.describe.serial('Cleaning & Export flow', () => {
 
     // The button text is "執行梳理" - wait for the page to fully load
     // It may be disabled if no rules are available
-    const applyBtn = page.getByRole('button', { name: /執行梳理|執行/ })
+    const applyBtn = page.getByRole('button', { name: /執行梳理|執行|Run Cleaning|Run/i })
     await expect(applyBtn).toBeVisible({ timeout: 10000 })
 
     // If the button is disabled (no rules selected), that means the assessment
@@ -104,7 +104,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     await page.waitForTimeout(2000)
 
     // Try to apply cleaning if button is available and enabled
-    const applyBtn = page.getByRole('button', { name: /執行梳理|執行/ }).first()
+    const applyBtn = page.getByRole('button', { name: /執行梳理|執行|Run Cleaning|Run/i }).first()
     if (await applyBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       const isDisabled = await applyBtn.isDisabled()
       if (!isDisabled) {
@@ -141,7 +141,7 @@ test.describe.serial('Cleaning & Export flow', () => {
     await page.goto('./cleaning')
     await page.waitForTimeout(2000)
 
-    const applyBtn = page.getByRole('button', { name: /執行梳理|執行/ }).first()
+    const applyBtn = page.getByRole('button', { name: /執行梳理|執行|Run Cleaning|Run/i }).first()
     if (await applyBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       const isDisabled = await applyBtn.isDisabled()
       if (!isDisabled) {

@@ -431,7 +431,9 @@ export default function AssessmentPage() {
                               {formatCount(issue.affected_rows)}
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                              {issue.unit || t('common.rows_affected')}
+                              {i18n.language === 'en' ? (
+                                {'列受影響': 'rows affected', '列': 'rows', '組': 'groups', '處': 'issues', '欄': 'columns'}[issue.unit] || issue.unit || t('common.rows_affected')
+                              ) : (issue.unit || t('common.rows_affected'))}
                             </div>
                           </div>
                         )}

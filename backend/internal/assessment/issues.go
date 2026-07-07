@@ -1826,10 +1826,8 @@ func addEnglishTranslations(issues []Issue) []Issue {
 func translateDescription(desc string, indicator string) string {
 	// Pattern-based translation for common description formats
 	switch indicator {
-	case "row_completeness":
+	case "row_completeness", "column_completeness", "completeness":
 		return "Multiple rows contain empty cells. Consider filling missing data to improve quality."
-	case "column_completeness":
-		return "Some columns have high rates of missing values. Consider removing or filling these columns."
 	case "format_consistency":
 		return "Inconsistent data formats detected within columns (mixed date formats, number formats, etc.)"
 	case "duplicate_similar":

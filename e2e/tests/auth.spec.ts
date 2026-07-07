@@ -11,9 +11,9 @@ test.describe('Authentication flows', () => {
     await page.goto('./register')
     await page.waitForTimeout(500)
 
-    await page.locator('input[placeholder*="使用者名稱"]').first().fill(uniqueUser.username)
+    await page.locator('input[type="text"]').first().fill(uniqueUser.username)
     await page.locator('input[type="password"]').first().fill(uniqueUser.password)
-    await page.locator('input[placeholder*="再次"]').fill(uniqueUser.password)
+    await page.locator('input[placeholder*="再次"], input[placeholder*="Re-enter"], input[placeholder*="Confirm"]').fill(uniqueUser.password)
     await page.getByRole('button', { name: /註冊|register/i }).click()
 
     // Should auto-login and redirect to landing
@@ -24,9 +24,9 @@ test.describe('Authentication flows', () => {
     // Use the user we just registered above, or the standard test user
     await page.goto('./login')
     await page.waitForTimeout(300)
-    await page.getByPlaceholder(/使用者名稱/).first().fill(TEST_USER.username)
-    await page.getByPlaceholder(/密碼/).first().fill(TEST_USER.password)
-    await page.getByRole('button', { name: /登入/i }).click()
+    await page.locator('input[type="text"]').first().fill(TEST_USER.username)
+    await page.locator('input[type="password"]').first().fill(TEST_USER.password)
+    await page.getByRole('button', { name: /登入|login/i }).click()
 
     // Might need to register if user doesn't exist
     const loginSucceeded = await page.waitForURL(/\/landing/, { timeout: 5000 }).then(() => true).catch(() => false)
@@ -37,9 +37,9 @@ test.describe('Authentication flows', () => {
       await page.waitForTimeout(500)
       await page.goto('./login')
       await page.waitForTimeout(300)
-      await page.getByPlaceholder(/使用者名稱/).first().fill(TEST_USER.username)
-      await page.getByPlaceholder(/密碼/).first().fill(TEST_USER.password)
-      await page.getByRole('button', { name: /登入/i }).click()
+      await page.locator('input[type="text"]').first().fill(TEST_USER.username)
+      await page.locator('input[type="password"]').first().fill(TEST_USER.password)
+      await page.getByRole('button', { name: /登入|login/i }).click()
       await expect(page).toHaveURL(/\/landing/, { timeout: 10000 })
     }
 
@@ -50,9 +50,9 @@ test.describe('Authentication flows', () => {
   test('Login with invalid credentials → see error message', async ({ page }) => {
     await page.goto('./login')
     await page.waitForTimeout(300)
-    await page.getByPlaceholder(/使用者名稱/).first().fill('nonexistent_user_xyz')
-    await page.getByPlaceholder(/密碼/).first().fill('wrong_password_123')
-    await page.getByRole('button', { name: /登入/i }).click()
+    await page.locator('input[type="text"]').first().fill('nonexistent_user_xyz')
+    await page.locator('input[type="password"]').first().fill('wrong_password_123')
+    await page.getByRole('button', { name: /登入|login/i }).click()
 
     // Should stay on login page and show error
     await page.waitForTimeout(2000)

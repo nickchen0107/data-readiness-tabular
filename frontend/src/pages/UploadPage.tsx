@@ -256,18 +256,11 @@ export default function UploadPage() {
                 </div>
               </div>
               <span className="pill ready">✓ {t('status.upload_complete')}</span>
-              <span
-                style={{
-                  fontSize: 12, color: 'var(--ink-faint)', textDecoration: 'underline',
-                  marginLeft: 8,
-                }}
-              >
-                {t('btn.reupload')}
-              </span>
               <a
                 href={`/data-readiness-tabular/api/upload/${uploadResult.id}/download`}
                 download={uploadResult.filename}
-                style={{ fontSize: 12, color: 'var(--accent)', marginLeft: 8, textDecoration: 'underline' }}
+                className="pill"
+                style={{ fontSize: 11, textDecoration: 'none', marginLeft: 8 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 ↓ Download
