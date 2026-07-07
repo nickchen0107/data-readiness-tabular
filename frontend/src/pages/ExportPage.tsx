@@ -7,6 +7,7 @@ import {
 } from 'recharts'
 import apiClient from '../api/client'
 import { getResolvedIssues, getRemainingIssues, IssueExample } from '../utils/issueDiff'
+import { td } from '../utils/translateDynamic'
 
 /* ─── Type Definitions ─── */
 
@@ -62,10 +63,11 @@ interface ExcelTableProps {
   highlightColor?: string
   highlightBg?: string
   strikethrough?: boolean
-  t: (key: string) => string
+  t: (key: string, options?: Record<string, unknown>) => string
+  lang: string
 }
 
-function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlightBg = 'rgba(220, 38, 38, 0.06)', strikethrough = false, t }: ExcelTableProps) {
+function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlightBg = 'rgba(220, 38, 38, 0.06)', strikethrough = false, t, lang }: ExcelTableProps) {
   // Group examples by label
   const groups: Array<{ label: string | undefined; items: IssueExample[] }> = []
   let currentLabel: string | undefined = undefined
@@ -86,7 +88,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
       {groups.slice(0, 3).map((group, gIdx) => (
         <div key={gIdx}>
           {group.label && (
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', margin: '12px 0 6px', paddingLeft: 4 }}>● {group.label}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', margin: '12px 0 6px', paddingLeft: 4 }}>● {td(group.label, t, lang)}</div>
           )}
           <div style={{ marginTop: group.label ? 0 : 12, borderRadius: 8, overflow: 'auto', border: '1px solid var(--line-soft)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'var(--mono)', tableLayout: 'auto', minWidth: 'max-content' }}>
@@ -527,7 +529,7 @@ export default function ExportPage() {
                                 {formatCount(issue.affected_rows)}
                               </div>
                               <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                                {issue.unit || t('common.rows_affected')}
+                                {td(issue.unit || t('common.rows_affected'), t, i18n.language)}
                               </div>
                             </div>
                           )}
@@ -541,7 +543,7 @@ export default function ExportPage() {
                             transition: isExpanded ? 'max-height 0.3s ease' : 'max-height 0.2s ease',
                           }}>
                             <div style={{ padding: '0 18px 16px 18px', borderTop: '1px solid var(--line-soft)' }}>
-                              <ExcelTable
+                              <ExcelTable lang={i18n.language}
                                 examples={postExamples}
                                 highlightColor="var(--green, #16a34a)"
                                 highlightBg="rgba(34, 197, 94, 0.08)"
@@ -653,7 +655,7 @@ export default function ExportPage() {
                                 {formatCount(issue.affected_rows)}
                               </div>
                               <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                                {issue.unit || t('common.rows_affected')}
+                                {td(issue.unit || t('common.rows_affected'), t, i18n.language)}
                               </div>
                             </div>
                           )}
@@ -667,7 +669,7 @@ export default function ExportPage() {
                             transition: isExpanded ? 'max-height 0.3s ease' : 'max-height 0.2s ease',
                           }}>
                             <div style={{ padding: '0 18px 16px 18px', borderTop: '1px solid var(--line-soft)' }}>
-                              <ExcelTable examples={issue.examples!} strikethrough={issue.indicator === 'strikethrough_formatting'} t={t} />
+                              <ExcelTable lang={i18n.language} examples={issue.examples!} strikethrough={issue.indicator === 'strikethrough_formatting'} t={t} />
                             </div>
                           </div>
                         )}

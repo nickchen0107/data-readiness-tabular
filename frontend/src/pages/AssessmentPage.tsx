@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts'
 import apiClient from '../api/client'
+import { td } from '../utils/translateDynamic'
 
 interface Indicator {
   name: string
@@ -431,9 +432,7 @@ export default function AssessmentPage() {
                               {formatCount(issue.affected_rows)}
                             </div>
                             <div style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 2 }}>
-                              {i18n.language === 'en' ? (
-                                {'列受影響': 'rows affected', '列': 'rows', '組': 'groups', '處': 'issues', '欄': 'columns'}[issue.unit] || issue.unit || t('common.rows_affected')
-                              ) : (issue.unit || t('common.rows_affected'))}
+                              {td(issue.unit || t('common.rows_affected'), t, i18n.language)}
                             </div>
                           </div>
                         )}
@@ -473,7 +472,7 @@ export default function AssessmentPage() {
                               return groups.slice(0, 3).map((group, gIdx) => (
                                 <div key={gIdx}>
                                   {group.label && (
-                                    <div style={{fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', margin: '12px 0 6px', paddingLeft: 4}}>● {group.label}</div>
+                                    <div style={{fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', margin: '12px 0 6px', paddingLeft: 4}}>● {td(group.label, t, i18n.language)}</div>
                                   )}
                                   <div style={{
                                     marginTop: group.label ? 0 : 12, borderRadius: 8, overflow: 'auto',
