@@ -185,31 +185,7 @@ export default function UploadPage() {
               style={{ display: 'none' }}
             />
 
-            {/* Demo sample button */}
-            {!uploadResult && !uploading && (
-              <div style={{ marginTop: 14, textAlign: 'center' }}>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('/data-readiness-tabular/demo-sample.xlsx')
-                      const blob = await res.blob()
-                      const file = new File([blob], 'demo-sample.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-                      handleFile(file)
-                    } catch {
-                      alert('無法載入示範資料')
-                    }
-                  }}
-                  style={{
-                    background: 'var(--accent-soft)', border: '1.5px solid var(--accent)', borderRadius: 8,
-                    padding: '8px 16px', fontSize: 13, fontWeight: 550, color: 'var(--accent)',
-                    cursor: 'pointer', transition: 'all 0.15s',
-                  }}
-                >
-                  📋 {t('upload.use_demo')}
-                </button>
-              </div>
-            )}
+            {/* Demo sample button - temporarily hidden */}
 
             {/* Upload progress */}
             {uploading && (
