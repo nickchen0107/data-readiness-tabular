@@ -32,6 +32,7 @@ interface AssessmentSummary {
     title_en?: string
     severity: string
     description: string
+    description_en?: string
     affected_rows: number
     unit: string
     indicator: string
@@ -516,7 +517,7 @@ export default function ExportPage() {
                             </div>
                             {issue.description && (
                               <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, paddingLeft: hasExamples ? 21 : 0 }}>
-                                {issue.description}
+                                {i18n.language === 'en' && issue.description_en ? issue.description_en : issue.description}
                               </div>
                             )}
                           </div>
@@ -622,13 +623,15 @@ export default function ExportPage() {
                             </div>
                             {/* Description */}
                             {issue.description && (
-                              issue.description.includes('\n') ? (
+                              (() => {
+                                const desc = i18n.language === 'en' && issue.description_en ? issue.description_en : issue.description
+                                return desc.includes('\n') ? (
                                 <div style={{ paddingLeft: hasExamples ? 21 : 0 }}>
                                   <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 4 }}>
-                                    {issue.description.split('\n')[0]}
+                                    {desc.split('\n')[0]}
                                   </div>
                                   <ul style={{ margin: 0, paddingLeft: 18, listStyleType: 'disc', paddingTop: 0 }}>
-                                    {issue.description.split('\n').slice(1).filter(Boolean).map((line, li) => (
+                                    {desc.split('\n').slice(1).filter(Boolean).map((line, li) => (
                                       <li key={li} style={{ marginBottom: 2, fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
                                         {line}
                                       </li>
@@ -637,9 +640,10 @@ export default function ExportPage() {
                                 </div>
                               ) : (
                                 <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, paddingLeft: hasExamples ? 21 : 0 }}>
-                                  {issue.description}
+                                  {desc}
                                 </div>
                               )
+                              })()
                             )}
                           </div>
                           {/* Affected count */}

@@ -19,6 +19,7 @@ export interface Issue {
   severity: string;
   affected_rows: number;
   description?: string;
+  description_en?: string;
   unit?: string;
   indicator?: string;
   examples?: IssueExample[];
