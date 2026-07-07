@@ -523,7 +523,7 @@ export default function AssessmentPage() {
                                                   color: isHighlighted ? 'var(--rose, #dc2626)' : 'var(--ink-soft)',
                                                   fontWeight: isHighlighted ? 600 : 600,
                                                   textAlign: 'left', whiteSpace: 'nowrap',
-                                                }}>{h}</th>
+                                                }}>{td(h, t, i18n.language)}</th>
                                               )
                                             }).filter(Boolean)
                                           })()}
@@ -581,7 +581,7 @@ export default function AssessmentPage() {
                                                     textAlign: isMerged ? 'center' : 'left',
                                                     textDecoration: isHighlighted && issue.indicator === 'strikethrough_formatting' ? 'line-through' : 'none',
                                                   }}>
-                                                    {isMerged ? `⬌ ${cell || `(${t('clean.merged_cell_label')})`}` : isEmpty ? '—' : cell}
+                                                    {isMerged ? `⬌ ${cell || `(${t('clean.merged_cell_label')})`}` : isEmpty ? '—' : td(cell, t, i18n.language)}
                                                     {ex.format_labels?.[k] && (
                                                       <div style={{ marginTop: 2 }}>
                                                         <span style={{

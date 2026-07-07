@@ -122,7 +122,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
                           color: isHighlighted ? highlightColor : 'var(--ink-soft)',
                           fontWeight: 600,
                           textAlign: 'left', whiteSpace: 'nowrap',
-                        }}>{h}</th>
+                        }}>{td(h, t, lang)}</th>
                       )
                     }).filter(Boolean)
                   })()}
@@ -165,7 +165,7 @@ function ExcelTable({ examples, highlightColor = 'var(--rose, #dc2626)', highlig
                               textAlign: isMerged ? 'center' : 'left',
                               textDecoration: isHighlighted && strikethrough ? 'line-through' : 'none',
                             }}>
-                              {isMerged ? `⬌ ${cell || `(${t('clean.merged_cell_label')})`}` : isEmpty ? '—' : cell}
+                              {isMerged ? `⬌ ${cell || `(${t('clean.merged_cell_label')})`}` : isEmpty ? '—' : td(cell, t, lang)}
                               {ex.format_labels?.[k] && (
                                 <div style={{ marginTop: 2 }}>
                                   <span style={{
