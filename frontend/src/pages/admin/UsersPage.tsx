@@ -4,7 +4,7 @@ import apiClient from '../../api/client'
 
 interface UserRecord {
   id: string
-  email: string
+  username: string
   role: string
   used_count: number
   remaining: number
@@ -52,7 +52,7 @@ export default function UsersPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--line, #e0e0e0)' }}>
-                  <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Email</th>
+                  <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Account</th>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Role</th>
                   <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>{t('admin.used_quota')}</th>
                   <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>{t('admin.remaining_quota')}</th>
@@ -61,7 +61,7 @@ export default function UsersPage() {
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id} style={{ borderBottom: '1px solid var(--line-soft, #f0f0f0)' }}>
-                    <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)' }}>{u.email}</td>
+                    <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)' }}>{u.username}</td>
                     <td style={{ padding: '10px 12px' }}>
                       <span style={{
                         fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
