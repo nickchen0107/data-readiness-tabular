@@ -63,12 +63,11 @@ export default function Layout() {
         borderBottom: '1px solid var(--line)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 9,
-            background: 'var(--ink)', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 700, fontSize: 17, fontFamily: 'var(--mono)', letterSpacing: '-0.04em',
-          }}>S</div>
+          <img
+            src="/data-readiness-tabular/favicon.png"
+            alt="S.A.F.E.-AI"
+            style={{ width: 38, height: 38, borderRadius: 9 }}
+          />
           <div>
             <div style={{ fontSize: 16, fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
               {t('header.platform_name')}
@@ -143,8 +142,8 @@ export default function Layout() {
               >
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%',
-                  border: isActive ? '1.5px solid var(--accent)' : isReached ? '1.5px solid var(--ink)' : '1.5px solid var(--ink-faint)',
-                  background: isActive ? 'var(--accent)' : isReached ? 'var(--ink)' : 'transparent',
+                  border: isActive ? '1.5px solid var(--accent)' : isReached ? '1.5px solid var(--accent)' : '1.5px solid var(--ink-faint)',
+                  background: isActive ? 'var(--accent)' : isReached ? 'var(--accent)' : 'transparent',
                   color: (isActive || isReached) ? '#fff' : 'var(--ink-faint)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 12, fontFamily: 'var(--mono)', flexShrink: 0,
@@ -170,6 +169,15 @@ export default function Layout() {
       <main style={{ maxWidth: 1180, width: '100%', margin: '0 auto', padding: '30px 24px 60px', flex: 1 }}>
         <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        maxWidth: 1180, width: '100%', margin: '0 auto',
+        padding: '16px 24px', borderTop: '1px solid var(--line)',
+        textAlign: 'center', fontSize: 11, color: 'var(--ink-faint)',
+      }}>
+        Copyright © AI DataBrushing Technology Co., Ltd. All rights reserved.
+      </footer>
     </div>
   )
 }

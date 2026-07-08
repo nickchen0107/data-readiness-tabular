@@ -44,7 +44,7 @@ test.describe('Authentication flows', () => {
     }
 
     // Verify we see some dashboard content
-    await expect(page.locator('body')).toContainText(/SAFE-AI|梳理|上傳|Dashboard/i)
+    await expect(page.locator('body')).toContainText(/S\.A\.F\.E\.-AI|SAFE-AI|梳理|上傳|Dashboard/i)
   })
 
   test('Login with invalid credentials → see error message', async ({ page }) => {

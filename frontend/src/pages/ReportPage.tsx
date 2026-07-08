@@ -112,7 +112,7 @@ export default function ReportPage() {
 
       {/* ─── Cover ─── */}
       <div style={{ textAlign: 'center', marginBottom: 50, paddingTop: 60, pageBreakAfter: 'always' }}>
-        <h1 style={{ fontSize: 36, fontWeight: 700, marginBottom: 10 }}>SAFE-AI</h1>
+        <h1 style={{ fontSize: 36, fontWeight: 700, marginBottom: 10 }}>S.A.F.E.-AI</h1>
         <h2 style={{ fontSize: 22, fontWeight: 500, color: '#555' }}>{isEn ? 'Data Quality Report' : '資料梳理報告'}</h2>
         {session.original_filename && <p style={{ marginTop: 20, fontSize: 14, color: '#666' }}>{isEn ? 'Source File' : '來源檔案'}: {session.original_filename}</p>}
         <p style={{ marginTop: 10, fontSize: 12, color: '#999' }}>Generated: {new Date().toLocaleString()}</p>

@@ -1,9 +1,11 @@
 package export
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html"
 	"math"
+	"os"
 	"strings"
 
 	"github.com/safe-ai/excel-brushing-tool/internal/assessment"
@@ -44,6 +46,56 @@ func translateDynamic(text string, isEn bool) string {
 	if translated, ok := dynamicTranslations[text]; ok {
 		return translated
 	}
+	// Pattern-based translations for strings with variables
+	// "欄位「XXX」超過一半為空" → "Column "XXX" is over 50% empty"
+	if strings.Contains(text, "超過一半為空") {
+		// Extract column name between「」
+		start := strings.Index(text, "「")
+		end := strings.Index(text, "」")
+		if start >= 0 && end > start {
+			colName := text[start+3 : end]
+			return fmt.Sprintf(`Column "%s" is over 50%% empty`, colName)
+		}
+	}
+	// "偵測到約 N 列重複或近似資料" pattern
+	if strings.Contains(text, "重複或近似") || strings.Contains(text, "重複") {
+		return "Duplicate or similar data detected"
+	}
+	// "偵測到小計/合計列" patterns
+	if strings.Contains(text, "小計") || strings.Contains(text, "合計列") {
+		return "Subtotal/total rows detected"
+	}
+	// "儲存格" patterns
+	if strings.Contains(text, "儲存格") && strings.Contains(text, "換行") {
+		return "Cells contain newline characters"
+	}
+	if strings.Contains(text, "儲存格") && strings.Contains(text, "引用") {
+		return "Cell reference placeholders detected"
+	}
+	// "多表格" pattern
+	if strings.Contains(text, "多表格") {
+		return "Multiple tables mixed in one sheet"
+	}
+	// "格式不一致" or "格式混合" patterns
+	if strings.Contains(text, "格式不一致") || strings.Contains(text, "格式混") {
+		return "Mixed formats detected in columns"
+	}
+	// "空值" patterns
+	if strings.Contains(text, "空值欄位") || strings.Contains(text, "空值") {
+		return "Empty values detected"
+	}
+	// "備註" patterns
+	if strings.Contains(text, "備註") || strings.Contains(text, "括號") {
+		return "Inline remarks in structural columns"
+	}
+	// "刪除線" pattern
+	if strings.Contains(text, "刪除線") {
+		return "Strikethrough formatting detected"
+	}
+	// "數值" patterns  
+	if strings.Contains(text, "非數字") || strings.Contains(text, "數值欄位") {
+		return "Non-numeric values in numeric columns"
+	}
 	return text
 }
 
@@ -58,7 +110,12 @@ func buildReportHTML(data *PDFReportData, isEn bool) string {
 
 	// Cover
 	sb.WriteString(`<div class="cover">`)
-	sb.WriteString(`<h1>SAFE-AI</h1>`)
+	// Embed logo as base64 image
+	logoB64 := loadLogoBase64()
+	if logoB64 != "" {
+		sb.WriteString(fmt.Sprintf(`<img src="data:image/png;base64,%s" style="width:120px;height:120px;margin-bottom:20px;border-radius:50%%"/>`, logoB64))
+	}
+	sb.WriteString(`<h1>S.A.F.E.-AI</h1>`)
 	if isEn {
 		sb.WriteString(`<h2>Data Quality Report</h2>`)
 	} else {
@@ -187,7 +244,7 @@ func writeIndicatorTable(sb *strings.Builder, a *assessment.Assessment, isEn boo
 		if i%2 == 0 {
 			cls = ` class="alt"`
 		}
-		barColor := "#2b6cb0"
+		barColor := "#2b4c8c"
 		if ind.score >= 80 {
 			barColor = "#15803d"
 		} else if ind.score < 60 {
@@ -551,7 +608,7 @@ func writeRadarChartSingle(sb *strings.Builder, a *assessment.Assessment, isEn b
 		}
 		sb.WriteString(fmt.Sprintf("%.1f,%.1f", x, y))
 	}
-	sb.WriteString(`" fill="rgba(43,108,176,0.2)" stroke="#2b6cb0" stroke-width="1.5"/>`)
+	sb.WriteString(`" fill="rgba(43,76,140,0.2)" stroke="#2b4c8c" stroke-width="1.5"/>`)
 	sb.WriteString(`</svg></div>`)
 }
 
@@ -598,7 +655,7 @@ func writeProgressBars(sb *strings.Builder, before, after *assessment.Assessment
 		sb.WriteString(`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">`)
 		sb.WriteString(fmt.Sprintf(`<div style="width:130px"><div style="font-size:12px;font-weight:600">%s</div></div>`, name))
 		sb.WriteString(fmt.Sprintf(`<div style="flex:1;height:7px;border-radius:4px;background:#e5e7eb;position:relative;overflow:hidden">`))
-		sb.WriteString(fmt.Sprintf(`<div style="position:absolute;left:0;top:0;height:100%%;width:%.0f%%;background:#2b6cb0;border-radius:4px"></div>`, baseWidth))
+		sb.WriteString(fmt.Sprintf(`<div style="position:absolute;left:0;top:0;height:100%%;width:%.0f%%;background:#2b4c8c;border-radius:4px"></div>`, baseWidth))
 		if improvementWidth > 0 {
 			sb.WriteString(fmt.Sprintf(`<div style="position:absolute;left:%.0f%%;top:0;height:100%%;width:%.0f%%;background:rgba(34,197,94,0.6);border-radius:0 4px 4px 0"></div>`, baseWidth, improvementWidth))
 		}
@@ -608,41 +665,58 @@ func writeProgressBars(sb *strings.Builder, before, after *assessment.Assessment
 	}
 }
 
+// loadLogoBase64 reads the logo file and returns base64-encoded string
+func loadLogoBase64() string {
+	// Try multiple paths (Docker vs local dev)
+	paths := []string{
+		"./assets/logo.png",
+		"/app/assets/logo.png",
+		"backend/assets/logo.png",
+	}
+	for _, p := range paths {
+		data, err := os.ReadFile(p)
+		if err == nil {
+			return base64.StdEncoding.EncodeToString(data)
+		}
+	}
+	return ""
+}
+
 func reportCSS() string {
 	return `
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif; font-size: 12px; line-height: 1.6; color: #1a1f2e; padding: 30px 40px; max-width: 780px; margin: 0 auto; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Noto Sans TC", sans-serif; font-size: 12px; line-height: 1.6; color: #1a2340; padding: 30px 40px; max-width: 780px; margin: 0 auto; }
 .cover { text-align: center; padding: 120px 0 60px; }
-.cover h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+.cover h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; color: #2b4c8c; }
 .cover h2 { font-size: 20px; font-weight: 400; color: #555; }
 .cover .meta { margin-top: 12px; font-size: 12px; color: #888; }
 .page-break { page-break-before: always; padding-top: 20px; }
-.section-title { font-size: 16px; font-weight: 700; border-bottom: 2px solid #2b6cb0; padding-bottom: 5px; margin-bottom: 14px; margin-top: 10px; }
+.section-title { font-size: 16px; font-weight: 700; border-bottom: 2px solid #2b4c8c; padding-bottom: 5px; margin-bottom: 14px; margin-top: 10px; color: #1a2340; }
 h3 { font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
 .note { font-size: 11px; color: #666; margin-bottom: 10px; }
 .score-block { text-align: center; margin: 16px 0 20px; }
 .score { font-size: 42px; font-weight: 700; display: block; }
 .grade { font-size: 13px; font-weight: 600; }
 table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-.ind-table th, .comp-table th { background: #2b6cb0; color: #fff; padding: 6px 10px; text-align: center; font-size: 11px; }
-.ind-table td, .comp-table td { padding: 5px 10px; text-align: center; border: 1px solid #e5e7eb; font-size: 11px; }
+.ind-table th, .comp-table th { background: #2b4c8c; color: #fff; padding: 6px 10px; text-align: center; font-size: 11px; }
+.ind-table td, .comp-table td { padding: 5px 10px; text-align: center; border: 1px solid #e2e6ed; font-size: 11px; }
 .ind-table td.left { text-align: left; }
-tr.alt td, .ind-table tr.alt td { background: #f9fafb; }
+tr.alt td, .ind-table tr.alt td { background: #f5f7fa; }
 .green { color: #15803d; font-weight: 600; }
 .rules { padding-left: 20px; margin-bottom: 14px; }
 .rules li { margin-bottom: 3px; font-size: 12px; }
-.issue-card { border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 10px; overflow: hidden; page-break-inside: avoid; }
-.issue-header { padding: 8px 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.issue-card { border: 1px solid #e2e6ed; border-radius: 6px; margin-bottom: 10px; overflow: hidden; page-break-inside: avoid; }
+.issue-header { padding: 8px 12px; background: #f5f7fa; border-bottom: 1px solid #e2e6ed; display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .issue-title { font-weight: 600; flex: 1; }
 .affected { font-size: 10px; color: #666; }
 .sev-high { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; background: #fef2f2; color: #dc2626; }
 .sev-med { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; background: #fffbeb; color: #d97706; }
 .sev-low { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; background: #f0fdf4; color: #16a34a; }
 .issue-desc { padding: 6px 12px; font-size: 11px; color: #555; }
-.group-label { font-size: 11px; font-weight: 600; color: #2b6cb0; margin: 6px 12px 3px; }
+.group-label { font-size: 11px; font-weight: 600; color: #2b4c8c; margin: 6px 12px 3px; }
 .excel-table { margin: 4px 12px 10px; width: calc(100% - 24px); font-size: 10px; }
-.excel-table th { background: #f3f4f6; padding: 3px 6px; font-weight: 600; border: 1px solid #e5e7eb; font-size: 10px; }
-.excel-table td { padding: 3px 6px; border: 1px solid #e5e7eb; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.excel-table th { background: #f3f4f6; padding: 3px 6px; font-weight: 600; border: 1px solid #e2e6ed; font-size: 10px; }
+.excel-table td { padding: 3px 6px; border: 1px solid #e2e6ed; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .excel-table td.hl { background: rgba(220,38,38,0.06); border: 1.5px solid #dc2626; color: #dc2626; }
 .excel-table .row-num { width: 28px; text-align: center; color: #999; font-size: 9px; }
 `

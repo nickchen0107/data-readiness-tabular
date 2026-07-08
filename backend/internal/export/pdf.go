@@ -74,7 +74,7 @@ func GeneratePDF(data *PDFReportData, cfg *config.Config, outputDir string) (str
 	pdf.SetTextColor(255, 255, 255)
 	setFont("B", 28)
 	pdf.SetY(80)
-	pdf.CellFormat(190, 15, "SAFE-AI", "", 1, "C", false, 0, "")
+	pdf.CellFormat(190, 15, "S.A.F.E.-AI", "", 1, "C", false, 0, "")
 	pdf.Ln(5)
 	setFont("B", 20)
 	if isEn {

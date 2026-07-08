@@ -40,6 +40,7 @@ RUN mkdir -p /app/assets/fonts
 # Copy font files from source (included in repo for reliability)
 COPY assets/fonts/NotoSansTC-Regular.ttf /app/assets/fonts/NotoSansTC-Regular.ttf
 COPY assets/fonts/NotoSansTC-Bold.ttf /app/assets/fonts/NotoSansTC-Bold.ttf
+COPY assets/logo.png /app/assets/logo.png
 
 # Copy binary from builder
 COPY --from=builder /app/server /app/server

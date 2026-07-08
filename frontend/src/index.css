@@ -1,14 +1,16 @@
 :root {
-  --ink: #1a1f2e;
-  --ink-soft: #5a6473;
+  --ink: #1a2340;
+  --ink-soft: #4a5568;
   --ink-faint: #8b94a3;
-  --line: #e4e7ec;
-  --line-soft: #eef0f3;
+  --line: #e2e6ed;
+  --line-soft: #eef1f5;
   --paper: #ffffff;
-  --canvas: #f6f7f9;
-  --panel: #fbfcfd;
-  --accent: #2b6cb0;
-  --accent-soft: #ebf3fb;
+  --canvas: #f5f7fa;
+  --panel: #fafbfd;
+  --accent: #2b4c8c;
+  --accent-soft: #eaf0f9;
+  --orange: #e8922a;
+  --orange-soft: #fdf3e7;
   --green: #15803d;
   --green-soft: #eaf6ee;
   --amber: #b45309;
@@ -18,7 +20,7 @@
   --radius: 10px;
   --radius-sm: 7px;
   --mono: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,12 +61,12 @@ button {
   transition: all 0.15s;
 }
 
-.btn-primary { background: var(--ink); color: #fff; }
-.btn-primary:hover { background: #2d3344; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #1f3a6d; }
 .btn-ghost { color: var(--ink-soft); border: 1px solid var(--line); background: var(--paper); }
 .btn-ghost:hover { background: var(--paper); border-color: var(--ink-faint); }
-.btn-accent { background: var(--accent); color: #fff; }
-.btn-accent:hover { background: #245a96; }
+.btn-accent { background: var(--orange); color: #fff; }
+.btn-accent:hover { background: #d07e1f; }
 .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 input, select, textarea {
