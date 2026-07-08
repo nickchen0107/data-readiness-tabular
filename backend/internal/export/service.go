@@ -74,11 +74,11 @@ func (s *Service) GenerateExcelFile(ctx context.Context, session *cleaning.Clean
 
 // GeneratePDFFile generates the PDF report for a session.
 // Returns the file path to the generated PDF.
-func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.CleaningSession) (string, error) {
+func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.CleaningSession, locale string) (string, error) {
 	outputDir := s.getOutputDir(session.ID)
 
-	// Check if cached
-	cachedPath := filepath.Join(outputDir, fmt.Sprintf("report_%s.pdf", session.ID.String()[:8]))
+	// Check if cached (include locale in cache key)
+	cachedPath := filepath.Join(outputDir, fmt.Sprintf("report_%s_%s.pdf", session.ID.String()[:8], locale))
 	if _, err := os.Stat(cachedPath); err == nil {
 		return cachedPath, nil
 	}
@@ -93,6 +93,7 @@ func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.Cleanin
 		Session:    session,
 		Assessment: assess,
 		Issues:     assess.Issues,
+		Locale:     locale,
 	}
 
 	return GeneratePDF(reportData, s.cfg, outputDir)
@@ -100,16 +101,16 @@ func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.Cleanin
 
 // GenerateLogFile generates the cleaning log JSON file for a session.
 // Returns the file path to the generated log file.
-func (s *Service) GenerateLogFile(ctx context.Context, session *cleaning.CleaningSession) (string, error) {
+func (s *Service) GenerateLogFile(ctx context.Context, session *cleaning.CleaningSession, locale string) (string, error) {
 	outputDir := s.getOutputDir(session.ID)
 
-	// Check if cached
-	cachedPath := filepath.Join(outputDir, fmt.Sprintf("cleaning_%s.log", session.ID.String()[:8]))
+	// Check if cached (include locale in cache key)
+	cachedPath := filepath.Join(outputDir, fmt.Sprintf("cleaning_%s_%s.log", session.ID.String()[:8], locale))
 	if _, err := os.Stat(cachedPath); err == nil {
 		return cachedPath, nil
 	}
 
-	return GenerateLog(session, outputDir)
+	return GenerateLog(session, outputDir, locale)
 }
 
 // getOutputDir returns the output directory for a session's export files

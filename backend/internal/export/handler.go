@@ -32,9 +32,7 @@ func GenerateExcelFilename(originalFilename string) string {
 	if originalFilename == "" {
 		return "refined.xlsx"
 	}
-	// Use filepath.Base to prevent path traversal
 	base := filepath.Base(originalFilename)
-	// Strip known file extensions
 	for _, ext := range []string{".xlsx", ".csv", ".xls", ".tsv"} {
 		if strings.HasSuffix(strings.ToLower(base), ext) {
 			base = strings.TrimSuffix(base, base[len(base)-len(ext):])
@@ -42,6 +40,40 @@ func GenerateExcelFilename(originalFilename string) string {
 		}
 	}
 	return base + "_refined.xlsx"
+}
+
+// GeneratePDFFilename derives the download filename for the PDF report.
+// If OriginalFilename is non-empty, it strips the extension and appends "_report.pdf".
+// If OriginalFilename is empty (legacy data), it falls back to "report.pdf".
+func GeneratePDFFilename(originalFilename string) string {
+	if originalFilename == "" {
+		return "report.pdf"
+	}
+	base := filepath.Base(originalFilename)
+	for _, ext := range []string{".xlsx", ".csv", ".xls", ".tsv"} {
+		if strings.HasSuffix(strings.ToLower(base), ext) {
+			base = strings.TrimSuffix(base, base[len(base)-len(ext):])
+			break
+		}
+	}
+	return base + "_report.pdf"
+}
+
+// GenerateLogFilename derives the download filename for the cleaning log.
+// If OriginalFilename is non-empty, it strips the extension and appends "_cleaning.log".
+// If OriginalFilename is empty (legacy data), it falls back to "cleaning.log".
+func GenerateLogFilename(originalFilename string) string {
+	if originalFilename == "" {
+		return "cleaning.log"
+	}
+	base := filepath.Base(originalFilename)
+	for _, ext := range []string{".xlsx", ".csv", ".xls", ".tsv"} {
+		if strings.HasSuffix(strings.ToLower(base), ext) {
+			base = strings.TrimSuffix(base, base[len(base)-len(ext):])
+			break
+		}
+	}
+	return base + "_cleaning.log"
 }
 
 // DownloadExcel handles GET /api/export/:id/xlsx
@@ -77,15 +109,20 @@ func (h *Handler) DownloadPDF(c *gin.Context) {
 		return
 	}
 
-	filePath, err := h.service.GeneratePDFFile(c.Request.Context(), session)
+	// Determine locale from query param (default: zh-TW)
+	locale := c.DefaultQuery("locale", "zh-TW")
+
+	filePath, err := h.service.GeneratePDFFile(c.Request.Context(), session, locale)
 	if err != nil {
 		log.Printf("產生 PDF 失敗: %v", err)
 		response.SendInternalError(c)
 		return
 	}
 
-	filename := "report.pdf"
-	c.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
+	// Dynamic filename based on original uploaded filename
+	filename := GeneratePDFFilename(session.OriginalFilename)
+	disposition := fmt.Sprintf(`attachment; filename="report.pdf"; filename*=UTF-8''%s`, url.PathEscape(filename))
+	c.Header("Content-Disposition", disposition)
 	c.Header("Content-Type", "application/pdf")
 	c.File(filePath)
 }
@@ -98,15 +135,20 @@ func (h *Handler) DownloadLog(c *gin.Context) {
 		return
 	}
 
-	filePath, err := h.service.GenerateLogFile(c.Request.Context(), session)
+	// Determine locale from query param (default: zh-TW)
+	locale := c.DefaultQuery("locale", "zh-TW")
+
+	filePath, err := h.service.GenerateLogFile(c.Request.Context(), session, locale)
 	if err != nil {
 		log.Printf("產生清理日誌失敗: %v", err)
 		response.SendInternalError(c)
 		return
 	}
 
-	filename := "cleaning.log"
-	c.Header("Content-Disposition", "attachment; filename=\""+filename+"\"")
+	// Dynamic filename based on original uploaded filename
+	filename := GenerateLogFilename(session.OriginalFilename)
+	disposition := fmt.Sprintf(`attachment; filename="cleaning.log"; filename*=UTF-8''%s`, url.PathEscape(filename))
+	c.Header("Content-Disposition", disposition)
 	c.Header("Content-Type", "text/plain; charset=utf-8")
 	c.File(filePath)
 }

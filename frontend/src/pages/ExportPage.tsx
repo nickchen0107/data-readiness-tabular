@@ -235,12 +235,20 @@ export default function ExportPage() {
     if (!data) return
     setDownloading(type)
     try {
-      const res = await apiClient.get(`/export/${data.session.id}/${type}`, { responseType: 'blob' })
+      const locale = i18n.language === 'en' ? 'en' : 'zh-TW'
+      const res = await apiClient.get(`/export/${data.session.id}/${type}?locale=${locale}`, { responseType: 'blob' })
       const blob = new Blob([res.data])
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = type === 'xlsx' ? 'refined.xlsx' : type === 'pdf' ? 'report.pdf' : 'cleaning.log'
+      // Extract filename from Content-Disposition header if available
+      const disposition = res.headers?.['content-disposition'] || ''
+      let filename = type === 'xlsx' ? 'refined.xlsx' : type === 'pdf' ? 'report.pdf' : 'cleaning.log'
+      const utf8Match = disposition.match(/filename\*=UTF-8''(.+)/i)
+      if (utf8Match) {
+        try { filename = decodeURIComponent(utf8Match[1]) } catch { /* use fallback */ }
+      }
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

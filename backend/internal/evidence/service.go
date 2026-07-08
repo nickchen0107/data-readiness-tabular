@@ -67,7 +67,7 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		return nil, fmt.Errorf("產生 Excel 檔案失敗: %w", err)
 	}
 
-	logPath, err := s.exportSvc.GenerateLogFile(ctx, session)
+	logPath, err := s.exportSvc.GenerateLogFile(ctx, session, "en")
 	if err != nil {
 		return nil, fmt.Errorf("產生清理日誌失敗: %w", err)
 	}
