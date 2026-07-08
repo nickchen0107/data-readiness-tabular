@@ -19,24 +19,54 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 }
 
 // GetSettings 取得全域配額設定（單筆）
+// 若不存在則自動建立預設值
 func (r *Repository) GetSettings(ctx context.Context) (*Settings, error) {
 	var s Settings
 	err := r.pool.QueryRow(ctx,
 		`SELECT id, max_assessments, reset_period, updated_at FROM quota_settings LIMIT 1`,
 	).Scan(&s.ID, &s.MaxAssessments, &s.ResetPeriod, &s.UpdatedAt)
 	if err != nil {
-		return nil, err
+		// If no row exists, insert default and return it
+		var inserted Settings
+		insertErr := r.pool.QueryRow(ctx,
+			`INSERT INTO quota_settings (max_assessments, reset_period)
+			 VALUES (10, 'daily')
+			 ON CONFLICT DO NOTHING
+			 RETURNING id, max_assessments, reset_period, updated_at`,
+		).Scan(&inserted.ID, &inserted.MaxAssessments, &inserted.ResetPeriod, &inserted.UpdatedAt)
+		if insertErr != nil {
+			// Try select again (race condition: another process inserted)
+			err2 := r.pool.QueryRow(ctx,
+				`SELECT id, max_assessments, reset_period, updated_at FROM quota_settings LIMIT 1`,
+			).Scan(&inserted.ID, &inserted.MaxAssessments, &inserted.ResetPeriod, &inserted.UpdatedAt)
+			if err2 != nil {
+				return nil, err2
+			}
+		}
+		return &inserted, nil
 	}
 	return &s, nil
 }
 
-// UpdateSettings 更新配額設定
+// UpdateSettings 更新配額設定（若不存在則插入）
 func (r *Repository) UpdateSettings(ctx context.Context, maxAssessments int, resetPeriod string) error {
-	_, err := r.pool.Exec(ctx,
+	// Use upsert pattern: try update first, if 0 rows affected then insert
+	res, err := r.pool.Exec(ctx,
 		`UPDATE quota_settings SET max_assessments = $1, reset_period = $2, updated_at = NOW()`,
 		maxAssessments, resetPeriod,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		// No row existed, insert one
+		_, err = r.pool.Exec(ctx,
+			`INSERT INTO quota_settings (max_assessments, reset_period) VALUES ($1, $2)`,
+			maxAssessments, resetPeriod,
+		)
+		return err
+	}
+	return nil
 }
 
 // GetUsageCount 取得使用者在指定時間之後的評估次數

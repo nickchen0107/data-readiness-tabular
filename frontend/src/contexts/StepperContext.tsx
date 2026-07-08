@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 
 const STEPS_COUNT = 8
 const STORAGE_KEY = 'stepper_state'
@@ -41,6 +41,29 @@ function saveState(state: StepperState) {
 
 export function StepperProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<StepperState>(loadState)
+
+  // Listen for storage changes (e.g., logout clears stepper_state)
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue === null) {
+        setState({ maxReachedStep: 0, completedSteps: Array(STEPS_COUNT).fill(false) })
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
+    // Also poll for removal (same-tab logout won't fire StorageEvent)
+    const interval = setInterval(() => {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw && state.maxReachedStep > 0) {
+        setState({ maxReachedStep: 0, completedSteps: Array(STEPS_COUNT).fill(false) })
+      }
+    }, 500)
+
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      clearInterval(interval)
+    }
+  }, [state.maxReachedStep])
 
   const markComplete = useCallback((step: number) => {
     setState((prev) => {
