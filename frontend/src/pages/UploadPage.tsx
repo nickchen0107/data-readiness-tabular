@@ -284,7 +284,10 @@ export default function UploadPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{uploadResult.filename}</div>
                 <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontFamily: 'var(--mono)' }}>
-                  {t('upload.file_info', { rows: uploadResult.row_count, cols: uploadResult.col_count })}
+                  {uploadResult.col_count > 0
+                    ? t('upload.file_info', { rows: uploadResult.row_count, cols: uploadResult.col_count })
+                    : `${uploadResult.row_count} rows`
+                  }
                 </div>
               </div>
               <span className="pill ready">✓ {t('status.upload_complete')}</span>

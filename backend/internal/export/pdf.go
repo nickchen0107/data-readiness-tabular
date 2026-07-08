@@ -16,10 +16,11 @@ import (
 
 // PDFReportData aggregates all data needed for the PDF report
 type PDFReportData struct {
-	Session    *cleaning.CleaningSession
-	Assessment *assessment.Assessment
-	Issues     []assessment.Issue
-	Locale     string // "en" or "zh-TW"
+	Session        *cleaning.CleaningSession
+	Assessment     *assessment.Assessment   // Original assessment (Step 3)
+	Issues         []assessment.Issue        // Original issues
+	PostAssessment *assessment.Assessment    // Post-cleaning assessment (Step 5 result), may be nil
+	Locale         string                    // "en" or "zh-TW"
 }
 
 // isEnglish returns true if locale is English
@@ -240,13 +241,45 @@ func GeneratePDF(data *PDFReportData, cfg *config.Config, outputDir string) (str
 	pdf.SetTextColor(int(primaryR), int(primaryG), int(primaryB))
 	setFont("B", 14)
 	if isEn {
-		pdf.CellFormat(190, 10, "Before / After Comparison", "", 1, "L", false, 0, "")
+		pdf.CellFormat(190, 10, "Cleaning Operations (Step 5)", "", 1, "L", false, 0, "")
 	} else {
-		pdf.CellFormat(190, 10, "\xe6\xa2\xb3\xe7\x90\x86\xe5\x89\x8d\xe5\xbe\x8c\xe5\xb0\x8d\xe6\xaf\x94", "", 1, "L", false, 0, "")
+		pdf.CellFormat(190, 10, "\xe6\xa2\xb3\xe7\x90\x86\xe6\x93\x8d\xe4\xbd\x9c (Step 5)", "", 1, "L", false, 0, "")
 	}
 	pdf.Ln(5)
 
-	// Before/After table
+	// ─── Section: Cleaning Rules Applied ───
+	setFont("B", 12)
+	if isEn {
+		pdf.CellFormat(190, 8, "Rules Applied", "", 1, "L", false, 0, "")
+	} else {
+		pdf.CellFormat(190, 8, "\xe5\xb7\xb2\xe5\xa5\x97\xe7\x94\xa8\xe6\xa2\xb3\xe7\x90\x86\xe8\xa6\x8f\xe5\x89\x87", "", 1, "L", false, 0, "")
+	}
+	pdf.Ln(3)
+
+	setFont("", 11)
+	for i, rule := range data.Session.RulesApplied {
+		ruleLabel := getRuleLabel(rule, !isEn)
+		pdf.CellFormat(190, 7, fmt.Sprintf("%d. %s", i+1, ruleLabel), "", 1, "L", false, 0, "")
+	}
+
+	if len(data.Session.RulesApplied) == 0 {
+		if isEn {
+			pdf.CellFormat(190, 7, "No rules applied", "", 1, "L", false, 0, "")
+		} else {
+			pdf.CellFormat(190, 7, "\xe6\x9c\xaa\xe5\xa5\x97\xe7\x94\xa8\xe4\xbb\xbb\xe4\xbd\x95\xe8\xa6\x8f\xe5\x89\x87", "", 1, "L", false, 0, "")
+		}
+	}
+
+	// Before/After comparison table
+	pdf.Ln(10)
+	setFont("B", 12)
+	if isEn {
+		pdf.CellFormat(190, 8, "Before / After Comparison", "", 1, "L", false, 0, "")
+	} else {
+		pdf.CellFormat(190, 8, "\xe6\xa2\xb3\xe7\x90\x86\xe5\x89\x8d\xe5\xbe\x8c\xe5\xb0\x8d\xe6\xaf\x94", "", 1, "L", false, 0, "")
+	}
+	pdf.Ln(3)
+
 	setFont("B", 10)
 	pdf.SetFillColor(int(accentR), int(accentG), int(accentB))
 	pdf.SetTextColor(255, 255, 255)
@@ -266,7 +299,6 @@ func GeneratePDF(data *PDFReportData, cfg *config.Config, outputDir string) (str
 	setFont("", 10)
 	pdf.SetFillColor(245, 245, 245)
 
-	// Rows
 	var rowsLabel, scoreLabel string
 	if isEn {
 		rowsLabel = "Data Rows"
@@ -285,27 +317,119 @@ func GeneratePDF(data *PDFReportData, cfg *config.Config, outputDir string) (str
 	pdf.CellFormat(compWidths[2], 7, fmt.Sprintf("%.1f", data.Session.ScoreAfter), "1", 0, "C", false, 0, "")
 	pdf.Ln(-1)
 
-	// ─── Section: Cleaning Rules Applied ───
-	pdf.Ln(15)
-	setFont("B", 14)
-	if isEn {
-		pdf.CellFormat(190, 10, "Cleaning Rules Applied", "", 1, "L", false, 0, "")
-	} else {
-		pdf.CellFormat(190, 10, "\xe5\xb7\xb2\xe5\xa5\x97\xe7\x94\xa8\xe6\xa2\xb3\xe7\x90\x86\xe8\xa6\x8f\xe5\x89\x87", "", 1, "L", false, 0, "")
-	}
-	pdf.Ln(5)
-
-	setFont("", 11)
-	for i, rule := range data.Session.RulesApplied {
-		ruleLabel := getRuleLabel(rule, !isEn)
-		pdf.CellFormat(190, 7, fmt.Sprintf("%d. %s", i+1, ruleLabel), "", 1, "L", false, 0, "")
-	}
-
-	if len(data.Session.RulesApplied) == 0 {
+	// ─── Page 4: Post-Cleaning Assessment ───
+	if data.PostAssessment != nil {
+		pdf.AddPage()
+		pdf.SetTextColor(int(primaryR), int(primaryG), int(primaryB))
+		setFont("B", 14)
 		if isEn {
-			pdf.CellFormat(190, 7, "No rules applied", "", 1, "L", false, 0, "")
+			pdf.CellFormat(190, 10, "Post-Cleaning Assessment", "", 1, "L", false, 0, "")
 		} else {
-			pdf.CellFormat(190, 7, "\xe6\x9c\xaa\xe5\xa5\x97\xe7\x94\xa8\xe4\xbb\xbb\xe4\xbd\x95\xe8\xa6\x8f\xe5\x89\x87", "", 1, "L", false, 0, "")
+			pdf.CellFormat(190, 10, "\xe6\xa2\xb3\xe7\x90\x86\xe5\xbe\x8c\xe8\xa9\x95\xe4\xbc\xb0\xe7\xb5\x90\xe6\x9e\x9c", "", 1, "L", false, 0, "")
+		}
+		pdf.Ln(8)
+
+		// Post-clean score
+		postScore := data.PostAssessment.TotalScore
+		setFont("B", 36)
+		postGrade := data.PostAssessment.Status
+		switch postGrade {
+		case "ready":
+			pdf.SetTextColor(int(greenR), int(greenG), int(greenB))
+		case "conditional":
+			pdf.SetTextColor(180, 83, 9)
+		default:
+			pdf.SetTextColor(180, 35, 24)
+		}
+		pdf.CellFormat(190, 20, fmt.Sprintf("%.1f", postScore), "", 1, "C", false, 0, "")
+		setFont("B", 12)
+		pdf.CellFormat(190, 8, getGradeLabel(postGrade, !isEn), "", 1, "C", false, 0, "")
+		pdf.Ln(10)
+
+		// Post-clean six indicators
+		pdf.SetTextColor(int(primaryR), int(primaryG), int(primaryB))
+		setFont("B", 12)
+		if isEn {
+			pdf.CellFormat(190, 8, "Six Indicators (After Cleaning)", "", 1, "L", false, 0, "")
+		} else {
+			pdf.CellFormat(190, 8, "\xe5\x85\xad\xe9\xa0\x85\xe6\x8c\x87\xe6\xa8\x99\xef\xbc\x88\xe6\xa2\xb3\xe7\x90\x86\xe5\xbe\x8c\xef\xbc\x89", "", 1, "L", false, 0, "")
+		}
+		pdf.Ln(3)
+
+		pdf.SetFillColor(int(accentR), int(accentG), int(accentB))
+		pdf.SetTextColor(255, 255, 255)
+		setFont("B", 10)
+		for i, h := range headers {
+			pdf.CellFormat(colWidths[i], 8, h, "1", 0, "C", true, 0, "")
+		}
+		pdf.Ln(-1)
+
+		pdf.SetFillColor(245, 245, 245)
+		pdf.SetTextColor(int(primaryR), int(primaryG), int(primaryB))
+		setFont("", 10)
+
+		postIndicators := getIndicatorRows(data.PostAssessment, !isEn)
+		for i, row := range postIndicators {
+			fill := i%2 == 0
+			for j, val := range row {
+				pdf.CellFormat(colWidths[j], 7, val, "1", 0, "C", fill, 0, "")
+			}
+			pdf.Ln(-1)
+		}
+	}
+
+	// ─── Page 5: Remaining Issues (Manual Processing Required) ───
+	if data.PostAssessment != nil && len(data.PostAssessment.Issues) > 0 {
+		pdf.AddPage()
+		pdf.SetTextColor(int(primaryR), int(primaryG), int(primaryB))
+		setFont("B", 14)
+		if isEn {
+			pdf.CellFormat(190, 10, "Remaining Issues (Manual Processing Required)", "", 1, "L", false, 0, "")
+		} else {
+			pdf.CellFormat(190, 10, "\xe5\xbe\x85\xe6\x89\x8b\xe5\x8b\x95\xe8\x99\x95\xe7\x90\x86\xe7\x9a\x84\xe5\x95\x8f\xe9\xa1\x8c", "", 1, "L", false, 0, "")
+		}
+		pdf.Ln(3)
+		setFont("", 10)
+		if isEn {
+			pdf.SetTextColor(100, 100, 100)
+			pdf.CellFormat(190, 7, "These issues could not be resolved automatically and require manual intervention.", "", 1, "L", false, 0, "")
+		} else {
+			pdf.SetTextColor(100, 100, 100)
+			pdf.CellFormat(190, 7, "\xe4\xbb\xa5\xe4\xb8\x8b\xe5\x95\x8f\xe9\xa1\x8c\xe7\x84\xa1\xe6\xb3\x95\xe9\x80\x8f\xe9\x81\x8e\xe8\x87\xaa\xe5\x8b\x95\xe5\x8c\x96\xe8\xa6\x8f\xe5\x89\x87\xe8\x99\x95\xe7\x90\x86\xef\xbc\x8c\xe9\x9c\x80\xe8\xa6\x81\xe4\xba\xba\xe5\xb7\xa5\xe4\xbb\x8b\xe5\x85\xa5\xe3\x80\x82", "", 1, "L", false, 0, "")
+		}
+		pdf.Ln(5)
+
+		pdf.SetFillColor(int(accentR), int(accentG), int(accentB))
+		pdf.SetTextColor(255, 255, 255)
+		setFont("B", 10)
+		remainWidths := []float64{25, 135}
+		var remainHeaders []string
+		if isEn {
+			remainHeaders = []string{"Severity", "Description"}
+		} else {
+			remainHeaders = []string{"\xe5\x9a\xb4\xe9\x87\x8d\xe5\xba\xa6", "\xe8\xaa\xaa\xe6\x98\x8e"}
+		}
+		for i, h := range remainHeaders {
+			pdf.CellFormat(remainWidths[i], 8, h, "1", 0, "C", true, 0, "")
+		}
+		pdf.Ln(-1)
+
+		pdf.SetTextColor(int(primaryR), int(primaryG), int(primaryB))
+		setFont("", 9)
+		for i, issue := range data.PostAssessment.Issues {
+			if i >= 20 {
+				break
+			}
+			fill := i%2 == 0
+			pdf.SetFillColor(245, 245, 245)
+			desc := issue.Description
+			if isEn && issue.DescriptionEn != "" {
+				desc = issue.DescriptionEn
+			}
+			descTrunc := truncateString(desc, 100)
+			pdf.CellFormat(remainWidths[0], 7, issue.Severity, "1", 0, "C", fill, 0, "")
+			pdf.CellFormat(remainWidths[1], 7, descTrunc, "1", 0, "L", fill, 0, "")
+			pdf.Ln(-1)
 		}
 	}
 

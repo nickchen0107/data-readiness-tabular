@@ -12,6 +12,7 @@ import (
 
 	"github.com/safe-ai/excel-brushing-tool/internal/assessment"
 	"github.com/safe-ai/excel-brushing-tool/internal/cleaning"
+	"github.com/safe-ai/excel-brushing-tool/internal/upload"
 	"github.com/safe-ai/excel-brushing-tool/pkg/config"
 )
 
@@ -89,14 +90,73 @@ func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.Cleanin
 		return "", fmt.Errorf("取得評估記錄失敗: %w", err)
 	}
 
+	// Compute post-cleaning assessment by running assessment on refined file
+	var postCleanAssess *assessment.Assessment
+	if session.RefinedFilePath != "" {
+		postCleanAssess = s.computePostCleanAssessment(session)
+	}
+
 	reportData := &PDFReportData{
-		Session:    session,
-		Assessment: assess,
-		Issues:     assess.Issues,
-		Locale:     locale,
+		Session:         session,
+		Assessment:      assess,
+		Issues:          assess.Issues,
+		PostAssessment:  postCleanAssess,
+		Locale:          locale,
 	}
 
 	return GeneratePDF(reportData, s.cfg, outputDir)
+}
+
+// computePostCleanAssessment runs assessment on the refined file to get post-clean scores
+func (s *Service) computePostCleanAssessment(session *cleaning.CleaningSession) *assessment.Assessment {
+	data, err := loadSheetDataForAssessment(session.RefinedFilePath)
+	if err != nil {
+		return nil
+	}
+
+	rowComp := assessment.CalculateRowCompleteness(data)
+	colComp, _ := assessment.CalculateColumnCompleteness(data)
+	formatCon := assessment.CalculateFormatConsistency(data)
+	dupSim := assessment.CalculateDuplicateSimilar(data)
+	tableStr := assessment.CalculateTableStructure(data)
+	aiReady := assessment.CalculateAIQueryReadiness(data)
+
+	indicators := assessment.IndicatorScores{
+		RowCompleteness:    rowComp,
+		ColumnCompleteness: colComp,
+		FormatConsistency:  formatCon,
+		DuplicateSimilar:   dupSim,
+		TableStructure:     tableStr,
+		AIQueryReadiness:   aiReady,
+	}
+
+	rowDist := assessment.CalculateRowDistribution(data)
+	weights := assessment.DefaultWeights()
+	totalScore, grade, err := assessment.CalculateTotalScoreWithReadiness(indicators, weights, rowDist)
+	if err != nil {
+		totalScore, grade, _ = assessment.CalculateTotalScore(indicators, weights)
+	}
+
+	issues := assessment.DetectIssues(data, indicators)
+
+	return &assessment.Assessment{
+		TotalScore:         totalScore,
+		Status:             grade,
+		RowCompleteness:    rowComp,
+		ColumnCompleteness: colComp,
+		FormatConsistency:  formatCon,
+		DuplicateSimilar:   dupSim,
+		TableStructure:     tableStr,
+		AIQueryReadiness:   aiReady,
+		Issues:             issues,
+		RowDistribution:    rowDist,
+		WeightsSnapshot:    weights,
+	}
+}
+
+// loadSheetDataForAssessment loads a CSV file as SheetData for assessment
+func loadSheetDataForAssessment(filePath string) (*upload.SheetData, error) {
+	return upload.LoadSheetData(filePath, "Sheet1", "csv")
 }
 
 // GenerateLogFile generates the cleaning log JSON file for a session.
