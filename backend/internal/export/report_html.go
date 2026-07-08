@@ -9,6 +9,44 @@ import (
 	"github.com/safe-ai/excel-brushing-tool/internal/assessment"
 )
 
+// dynamicTranslations maps Chinese dynamic strings to English
+var dynamicTranslations = map[string]string{
+	"小計/合計列":          "Subtotal/Total Rows",
+	"合併儲存格":           "Merged Cells",
+	"多表格混在同一 sheet":    "Multiple Tables in One Sheet",
+	"儲存格含換行":          "Cells Contain Newlines",
+	"孤立合計列":           "Orphan Total Row",
+	"(空白)":            "(blank)",
+	"表格結構":            "Table Structure",
+	"含有合併儲存格或小計列等":    "Contains merged cells or subtotal rows",
+	"待改善項目":           "Items to Improve",
+	"目前狀態":            "Current Status",
+	"欄位名稱":            "Column Names",
+	"部分欄位名稱為空或過短":     "Some column names are empty or too short",
+	"每欄資料量":           "Column Fill Rate",
+	"格式一致性":           "Format Consistency",
+	"部分欄位格式混合使用":      "Mixed formats in some columns",
+	"資料唯一性":           "Data Uniqueness",
+	"存在相似或重複的資料":      "Similar or duplicate data exists",
+	"（空白列）":           "(blank row)",
+	"列受影響":            "rows affected",
+	"列":              "rows",
+	"組":              "groups",
+	"處":              "issues",
+	"欄":              "columns",
+}
+
+// translateDynamic translates Chinese dynamic strings to English when isEn=true
+func translateDynamic(text string, isEn bool) string {
+	if !isEn || text == "" {
+		return text
+	}
+	if translated, ok := dynamicTranslations[text]; ok {
+		return translated
+	}
+	return text
+}
+
 // buildReportHTML generates a self-contained HTML report page
 func buildReportHTML(data *PDFReportData, isEn bool) string {
 	var sb strings.Builder
@@ -45,6 +83,12 @@ func buildReportHTML(data *PDFReportData, isEn bool) string {
 	sb.WriteString(fmt.Sprintf(`<h2 class="section-title">%s</h2>`, sectionTitle))
 	writeScoreBlock(&sb, data.Assessment.TotalScore, data.Assessment.Status, isEn)
 	writeIndicatorTable(&sb, data.Assessment, isEn)
+	// Radar chart for original assessment (single layer)
+	if data.PostAssessment != nil {
+		writeRadarChart(&sb, data.Assessment, data.PostAssessment, isEn)
+	} else {
+		writeRadarChartSingle(&sb, data.Assessment, isEn)
+	}
 	issuesTitle := "Issues Detected"
 	if !isEn {
 		issuesTitle = "偵測到的問題"
@@ -73,6 +117,9 @@ func buildReportHTML(data *PDFReportData, isEn bool) string {
 
 		// Indicator comparison table with delta
 		writeIndicatorComparisonTable(&sb, data.Assessment, data.PostAssessment, isEn)
+
+		// Progress bars with before/after overlay
+		writeProgressBars(&sb, data.Assessment, data.PostAssessment, isEn)
 
 		// SVG Radar chart
 		writeRadarChart(&sb, data.Assessment, data.PostAssessment, isEn)
@@ -226,6 +273,8 @@ func writeIssuesSection(sb *strings.Builder, issues []assessment.Issue, isEn boo
 		desc := issue.Description
 		if isEn && issue.DescriptionEn != "" {
 			desc = issue.DescriptionEn
+		} else if isEn {
+			desc = translateDynamic(desc, true)
 		}
 		if desc != "" {
 			sb.WriteString(fmt.Sprintf(`<div class="issue-desc">%s</div>`, html.EscapeString(desc)))
@@ -233,14 +282,14 @@ func writeIssuesSection(sb *strings.Builder, issues []assessment.Issue, isEn boo
 
 		// Examples (Excel-style tables)
 		if len(issue.Examples) > 0 {
-			writeExamples(sb, issue.Examples)
+			writeExamples(sb, issue.Examples, isEn)
 		}
 
 		sb.WriteString(`</div>`)
 	}
 }
 
-func writeExamples(sb *strings.Builder, examples []assessment.IssueExample) {
+func writeExamples(sb *strings.Builder, examples []assessment.IssueExample, isEn bool) {
 	// Group by label
 	type group struct {
 		label string
@@ -270,13 +319,15 @@ func writeExamples(sb *strings.Builder, examples []assessment.IssueExample) {
 	for g := 0; g < maxGroups; g++ {
 		grp := groups[g]
 		if grp.label != "__default" {
-			sb.WriteString(fmt.Sprintf(`<div class="group-label">%s</div>`, html.EscapeString(grp.label)))
+			translatedLabel := translateDynamic(grp.label, isEn)
+			sb.WriteString(fmt.Sprintf(`<div class="group-label">%s</div>`, html.EscapeString(translatedLabel)))
 		}
 
 		sb.WriteString(`<table class="excel-table"><thead><tr><th class="row-num">#</th>`)
 		if len(grp.items) > 0 && len(grp.items[0].Headers) > 0 {
 			for _, h := range grp.items[0].Headers {
-				sb.WriteString(fmt.Sprintf(`<th>%s</th>`, html.EscapeString(h)))
+				translatedH := translateDynamic(h, isEn)
+				sb.WriteString(fmt.Sprintf(`<th>%s</th>`, html.EscapeString(translatedH)))
 			}
 		}
 		sb.WriteString(`</tr></thead><tbody>`)
@@ -301,7 +352,7 @@ func writeExamples(sb *strings.Builder, examples []assessment.IssueExample) {
 				if isHL {
 					cls = ` class="hl"`
 				}
-				cellVal := cell
+				cellVal := translateDynamic(cell, isEn)
 				if cellVal == "" {
 					cellVal = "—"
 				}
@@ -459,6 +510,102 @@ func cosApprox(angle float64) float64 {
 
 func sinApprox(angle float64) float64 {
 	return math.Sin(angle)
+}
+
+// writeRadarChartSingle writes a single-layer radar for original assessment only
+func writeRadarChartSingle(sb *strings.Builder, a *assessment.Assessment, isEn bool) {
+	labels := []string{"Row", "Col", "Format", "Dup", "Structure", "AI"}
+	if !isEn {
+		labels = []string{"列", "欄", "格式", "重複", "結構", "AI"}
+	}
+	scores := []float64{a.RowCompleteness, a.ColumnCompleteness, a.FormatConsistency, a.DuplicateSimilar, a.TableStructure, a.AIQueryReadiness}
+
+	cx, cy, r := 150.0, 140.0, 100.0
+	n := len(labels)
+
+	sb.WriteString(`<div style="text-align:center;margin:16px 0">`)
+	sb.WriteString(`<svg width="300" height="280" viewBox="0 0 300 280" style="font-family:sans-serif;font-size:10px">`)
+
+	for _, pct := range []float64{0.25, 0.5, 0.75, 1.0} {
+		sb.WriteString(fmt.Sprintf(`<circle cx="%.0f" cy="%.0f" r="%.0f" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>`, cx, cy, r*pct))
+	}
+
+	for i, label := range labels {
+		angle := float64(i)*2*math.Pi/float64(n) - math.Pi/2
+		x := cx + r*math.Cos(angle)
+		y := cy + r*math.Sin(angle)
+		sb.WriteString(fmt.Sprintf(`<line x1="%.0f" y1="%.0f" x2="%.1f" y2="%.1f" stroke="#e5e7eb" stroke-width="0.5"/>`, cx, cy, x, y))
+		lx := cx + (r+15)*math.Cos(angle)
+		ly := cy + (r+15)*math.Sin(angle)
+		sb.WriteString(fmt.Sprintf(`<text x="%.1f" y="%.1f" text-anchor="middle" fill="#666">%s</text>`, lx, ly+4, label))
+	}
+
+	sb.WriteString(`<polygon points="`)
+	for i, score := range scores {
+		pct := score / 100.0
+		angle := float64(i)*2*math.Pi/float64(n) - math.Pi/2
+		x := cx + r*pct*math.Cos(angle)
+		y := cy + r*pct*math.Sin(angle)
+		if i > 0 {
+			sb.WriteString(" ")
+		}
+		sb.WriteString(fmt.Sprintf("%.1f,%.1f", x, y))
+	}
+	sb.WriteString(`" fill="rgba(43,108,176,0.2)" stroke="#2b6cb0" stroke-width="1.5"/>`)
+	sb.WriteString(`</svg></div>`)
+}
+
+// writeProgressBars writes before/after progress bars matching the frontend style
+func writeProgressBars(sb *strings.Builder, before, after *assessment.Assessment, isEn bool) {
+	type ind struct {
+		name   string
+		nameEn string
+		before float64
+		after  float64
+	}
+	indicators := []ind{
+		{"列完整度", "Row Completeness", before.RowCompleteness, after.RowCompleteness},
+		{"欄完整度", "Column Completeness", before.ColumnCompleteness, after.ColumnCompleteness},
+		{"格式一致性", "Format Consistency", before.FormatConsistency, after.FormatConsistency},
+		{"重複/相似", "Duplicate/Similar", before.DuplicateSimilar, after.DuplicateSimilar},
+		{"表格結構", "Table Structure", before.TableStructure, after.TableStructure},
+		{"AI查詢準備度", "AI Query Readiness", before.AIQueryReadiness, after.AIQueryReadiness},
+	}
+
+	title := "Indicator Improvement"
+	if !isEn {
+		title = "指標改善幅度"
+	}
+	sb.WriteString(fmt.Sprintf(`<h3 style="margin-top:16px">%s</h3>`, title))
+
+	for _, ind := range indicators {
+		name := ind.nameEn
+		if !isEn {
+			name = ind.name
+		}
+		delta := ind.after - ind.before
+		baseWidth := math.Max(0, math.Min(100, ind.before))
+		improvementWidth := 0.0
+		if delta > 0 {
+			improvementWidth = math.Min(delta, 100-baseWidth)
+		}
+
+		deltaStr := ""
+		if delta > 0 {
+			deltaStr = fmt.Sprintf(`<span style="color:#15803d;font-size:10px;margin-left:4px">(+%.1f)</span>`, delta)
+		}
+
+		sb.WriteString(`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">`)
+		sb.WriteString(fmt.Sprintf(`<div style="width:130px"><div style="font-size:12px;font-weight:600">%s</div></div>`, name))
+		sb.WriteString(fmt.Sprintf(`<div style="flex:1;height:7px;border-radius:4px;background:#e5e7eb;position:relative;overflow:hidden">`))
+		sb.WriteString(fmt.Sprintf(`<div style="position:absolute;left:0;top:0;height:100%%;width:%.0f%%;background:#2b6cb0;border-radius:4px"></div>`, baseWidth))
+		if improvementWidth > 0 {
+			sb.WriteString(fmt.Sprintf(`<div style="position:absolute;left:%.0f%%;top:0;height:100%%;width:%.0f%%;background:rgba(34,197,94,0.6);border-radius:0 4px 4px 0"></div>`, baseWidth, improvementWidth))
+		}
+		sb.WriteString(`</div>`)
+		sb.WriteString(fmt.Sprintf(`<div style="width:100px;text-align:right;font-size:11px;font-family:monospace">%.1f / 100%s</div>`, ind.after, deltaStr))
+		sb.WriteString(`</div>`)
+	}
 }
 
 func reportCSS() string {

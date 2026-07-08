@@ -78,12 +78,7 @@ func (s *Service) GenerateExcelFile(ctx context.Context, session *cleaning.Clean
 func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.CleaningSession, locale string) (string, error) {
 	outputDir := s.getOutputDir(session.ID)
 
-	// Check if cached (include locale in cache key)
-	cachedPath := filepath.Join(outputDir, fmt.Sprintf("report_%s_%s.pdf", session.ID.String()[:8], locale))
-	if _, err := os.Stat(cachedPath); err == nil {
-		return cachedPath, nil
-	}
-
+	// Always regenerate PDF (no cache) to ensure fresh data
 	// Get original assessment for the report data
 	assess, err := s.assessRepo.GetByID(ctx, session.AssessmentID)
 	if err != nil {
@@ -94,6 +89,10 @@ func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.Cleanin
 	var postCleanAssess *assessment.Assessment
 	if session.RefinedFilePath != "" {
 		postCleanAssess = s.computePostCleanAssessment(session)
+	}
+	// Override total score with the stored session value (matches what frontend displays)
+	if postCleanAssess != nil && session.ScoreAfter > 0 {
+		postCleanAssess.TotalScore = session.ScoreAfter
 	}
 
 	reportData := &PDFReportData{
