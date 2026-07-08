@@ -271,7 +271,7 @@ export default function UploadPage() {
               }}>
                 {(() => {
                   const parts = uploadResult.filename.split('.')
-                  const ext = parts.length > 1 ? parts.pop()?.toUpperCase() : 'FILE'
+                  const ext = parts.length > 1 ? parts.pop()?.toUpperCase() : 'XLSX'
                   return ext
                 })()}
               </div>
