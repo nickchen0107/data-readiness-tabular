@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     apiClient.post('/auth/logout').catch(() => {})
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('stepper_state')
     setState({ token: null, user: null, isAuthenticated: false })
   }, [])
 

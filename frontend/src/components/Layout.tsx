@@ -42,9 +42,9 @@ export default function Layout() {
     apiClient.get('/quota/me').then((res) => setQuota(res.data)).catch(() => {})
   }, [location.pathname])
 
-  // Auto-update maxReachedStep when user navigates to a new step
+  // Track progress: only advance maxReachedStep when going one step forward
   useEffect(() => {
-    if (currentStepIndex >= 0 && currentStepIndex > maxReachedStep) {
+    if (currentStepIndex >= 0 && currentStepIndex === maxReachedStep + 1) {
       markComplete(currentStepIndex - 1)
     }
   }, [currentStepIndex, maxReachedStep, markComplete])
