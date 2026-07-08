@@ -38,8 +38,8 @@ func (s *Service) RunAssessment(ctx context.Context, uploadID uuid.UUID, sheetNa
 	ext := strings.TrimPrefix(filepath.Ext(up.Filename), ".")
 	ext = strings.ToLower(ext)
 
-	// 取得不含副檔名的檔案名稱
-	filenameNoExt := strings.TrimSuffix(up.Filename, filepath.Ext(up.Filename))
+	// 取得檔案名稱（保留副檔名）
+	filename := up.Filename
 
 	// 3. 載入 SheetData
 	data, err := upload.LoadSheetData(up.FilePath, sheetName, ext)
@@ -93,7 +93,7 @@ func (s *Service) RunAssessment(ctx context.Context, uploadID uuid.UUID, sheetNa
 	assessment := &Assessment{
 		ID:                 uuid.New(),
 		UploadID:           uploadID,
-		Filename:           filenameNoExt,
+		Filename:           filename,
 		TotalRows:          data.TotalSheetRows, // sheet 的全部列數
 		TotalScore:         totalScore,
 		RowCompleteness:    rowComp,
@@ -129,8 +129,7 @@ func (s *Service) GetLatest(ctx context.Context) (*Assessment, error) {
 	if a.Filename == "" {
 		up, err := s.uploadRepo.GetByID(ctx, a.UploadID)
 		if err == nil {
-			ext := filepath.Ext(up.Filename)
-			a.Filename = strings.TrimSuffix(up.Filename, ext)
+			a.Filename = up.Filename
 		}
 	}
 	return a, nil
@@ -146,8 +145,7 @@ func (s *Service) GetAssessment(ctx context.Context, assessmentID uuid.UUID) (*A
 	if a.Filename == "" {
 		up, err := s.uploadRepo.GetByID(ctx, a.UploadID)
 		if err == nil {
-			ext := filepath.Ext(up.Filename)
-			a.Filename = strings.TrimSuffix(up.Filename, ext)
+			a.Filename = up.Filename
 		}
 	}
 	return a, nil
