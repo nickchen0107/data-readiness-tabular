@@ -79,7 +79,19 @@ func (h *Handler) GetIssues(c *gin.Context) {
 // GetLatest 處理 GET /api/assess/latest
 // 回傳當前使用者的最新評估結果
 func (h *Handler) GetLatest(c *gin.Context) {
-	assessment, err := h.service.GetLatest(c.Request.Context())
+	// Get user ID from JWT context
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		response.SendAuthError(c, "未認證")
+		return
+	}
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		response.SendAuthError(c, "無效的使用者身份")
+		return
+	}
+
+	assessment, err := h.service.GetLatestByUser(c.Request.Context(), userID)
 	if err != nil {
 		h.handleError(c, err)
 		return

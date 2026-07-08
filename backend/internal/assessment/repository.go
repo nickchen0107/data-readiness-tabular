@@ -65,8 +65,66 @@ func (r *Repository) Create(ctx context.Context, a *Assessment) error {
 	return err
 }
 
-// GetLatest 取得最新的評估記錄
+// GetLatest 取得當前使用者最新的評估記錄
 func (r *Repository) GetLatest(ctx context.Context) (*Assessment, error) {
+	return r.GetLatestGlobal(ctx)
+}
+
+// GetLatestByUser 取得指定使用者最新的評估記錄
+func (r *Repository) GetLatestByUser(ctx context.Context, userID uuid.UUID) (*Assessment, error) {
+	var a Assessment
+	var weightsJSON, issuesJSON, columnDetailsJSON []byte
+
+	err := r.pool.QueryRow(ctx,
+		`SELECT a.id, a.upload_id, a.total_score, a.row_completeness, a.column_completeness,
+		        a.format_consistency, a.duplicate_similar, a.table_structure, a.ai_query_readiness,
+		        a.weights_snapshot, a.status, a.issues, a.column_details, a.created_at
+		 FROM assessments a
+		 JOIN uploads u ON a.upload_id = u.id
+		 WHERE u.user_id = $1
+		 ORDER BY a.created_at DESC LIMIT 1`, userID,
+	).Scan(&a.ID, &a.UploadID, &a.TotalScore,
+		&a.RowCompleteness, &a.ColumnCompleteness,
+		&a.FormatConsistency, &a.DuplicateSimilar,
+		&a.TableStructure, &a.AIQueryReadiness,
+		&weightsJSON, &a.Status, &issuesJSON, &columnDetailsJSON, &a.CreatedAt)
+	if err != nil {
+		return nil, ErrAssessmentNotFound
+	}
+
+	if weightsJSON != nil {
+		if err := json.Unmarshal(weightsJSON, &a.WeightsSnapshot); err != nil {
+			return nil, err
+		}
+	}
+	if issuesJSON != nil {
+		if err := json.Unmarshal(issuesJSON, &a.Issues); err != nil {
+			return nil, err
+		}
+	}
+	if columnDetailsJSON != nil {
+		type combinedDetails struct {
+			Columns         []ColumnDetail  `json:"columns"`
+			RowDistribution RowDistribution `json:"row_distribution"`
+			TotalRows       int             `json:"total_rows"`
+			Filename        string          `json:"filename"`
+		}
+		var combined combinedDetails
+		if err := json.Unmarshal(columnDetailsJSON, &combined); err != nil {
+			_ = json.Unmarshal(columnDetailsJSON, &a.ColumnDetails)
+		} else {
+			a.ColumnDetails = combined.Columns
+			a.RowDistribution = combined.RowDistribution
+			a.TotalRows = combined.TotalRows
+			a.Filename = combined.Filename
+		}
+	}
+
+	return &a, nil
+}
+
+// GetLatestGlobal 取得全域最新的評估記錄（backward compat）
+func (r *Repository) GetLatestGlobal(ctx context.Context) (*Assessment, error) {
 	var a Assessment
 	var weightsJSON, issuesJSON, columnDetailsJSON []byte
 

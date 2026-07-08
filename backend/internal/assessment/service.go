@@ -135,6 +135,21 @@ func (s *Service) GetLatest(ctx context.Context) (*Assessment, error) {
 	return a, nil
 }
 
+// GetLatestByUser 取得指定使用者最新的評估記錄
+func (s *Service) GetLatestByUser(ctx context.Context, userID uuid.UUID) (*Assessment, error) {
+	a, err := s.assessRepo.GetLatestByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if a.Filename == "" {
+		up, err := s.uploadRepo.GetByID(ctx, a.UploadID)
+		if err == nil {
+			a.Filename = up.Filename
+		}
+	}
+	return a, nil
+}
+
 // GetAssessment 取得評估記錄
 func (s *Service) GetAssessment(ctx context.Context, assessmentID uuid.UUID) (*Assessment, error) {
 	a, err := s.assessRepo.GetByID(ctx, assessmentID)
