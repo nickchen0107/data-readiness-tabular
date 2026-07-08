@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type DragEvent, type ChangeEvent } from 'r
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import apiClient from '../api/client'
+import { useStepper } from '../contexts/StepperContext'
 
 interface UploadResult {
   id: string
@@ -31,6 +32,7 @@ export default function UploadPage() {
   const hasUserInteracted = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
+  const { resetProgress } = useStepper()
 
   useEffect(() => {
     apiClient.get('/quota/me').then((res) => {
@@ -121,6 +123,8 @@ export default function UploadPage() {
         upload_id: uploadResult.id,
         sheet_name: sheet,
       })
+      // Reset stepper progress — new assessment = new round
+      resetProgress(2)
       navigate('/assessment?id=' + res.data.id)
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string } } } }

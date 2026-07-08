@@ -11,6 +11,7 @@ interface StepperState {
 interface StepperContextType extends StepperState {
   markComplete: (step: number) => void
   canNavigateTo: (step: number) => boolean
+  resetProgress: (toStep: number) => void
 }
 
 const StepperContext = createContext<StepperContextType | undefined>(undefined)
@@ -56,8 +57,16 @@ export function StepperProvider({ children }: { children: ReactNode }) {
     return step <= state.maxReachedStep
   }, [state.maxReachedStep])
 
+  const resetProgress = useCallback((toStep: number) => {
+    const completedSteps = Array(STEPS_COUNT).fill(false)
+    for (let i = 0; i < toStep; i++) completedSteps[i] = true
+    const next = { maxReachedStep: toStep, completedSteps }
+    saveState(next)
+    setState(next)
+  }, [])
+
   return (
-    <StepperContext.Provider value={{ ...state, markComplete, canNavigateTo }}>
+    <StepperContext.Provider value={{ ...state, markComplete, canNavigateTo, resetProgress }}>
       {children}
     </StepperContext.Provider>
   )
