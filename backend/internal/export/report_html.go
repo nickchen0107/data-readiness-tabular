@@ -3,6 +3,7 @@ package export
 import (
 	"fmt"
 	"html"
+	"math"
 	"strings"
 
 	"github.com/safe-ai/excel-brushing-tool/internal/assessment"
@@ -69,7 +70,12 @@ func buildReportHTML(data *PDFReportData, isEn bool) string {
 		}
 		sb.WriteString(fmt.Sprintf(`<h2 class="section-title">%s</h2>`, sectionTitle))
 		writeScoreBlock(&sb, data.PostAssessment.TotalScore, data.PostAssessment.Status, isEn)
-		writeIndicatorTable(&sb, data.PostAssessment, isEn)
+
+		// Indicator comparison table with delta
+		writeIndicatorComparisonTable(&sb, data.Assessment, data.PostAssessment, isEn)
+
+		// SVG Radar chart
+		writeRadarChart(&sb, data.Assessment, data.PostAssessment, isEn)
 	}
 
 	// Section 4: Remaining Issues
@@ -127,14 +133,21 @@ func writeIndicatorTable(sb *strings.Builder, a *assessment.Assessment, isEn boo
 	}
 
 	sb.WriteString(`<table class="ind-table"><thead><tr>`)
-	sb.WriteString(fmt.Sprintf(`<th>%s</th><th>%s</th>`, hdr1, hdr2))
+	sb.WriteString(fmt.Sprintf(`<th>%s</th><th style="width:200px">%s</th><th style="width:50px">%s</th>`, hdr1, "", hdr2))
 	sb.WriteString(`</tr></thead><tbody>`)
 	for i, ind := range indicators {
 		cls := ""
 		if i%2 == 0 {
 			cls = ` class="alt"`
 		}
-		sb.WriteString(fmt.Sprintf(`<tr%s><td class="left">%s</td><td>%.1f</td></tr>`, cls, ind.name, ind.score))
+		barColor := "#2b6cb0"
+		if ind.score >= 80 {
+			barColor = "#15803d"
+		} else if ind.score < 60 {
+			barColor = "#b42318"
+		}
+		bar := fmt.Sprintf(`<div style="background:#e5e7eb;border-radius:3px;height:8px;width:100%%"><div style="background:%s;border-radius:3px;height:8px;width:%.0f%%"></div></div>`, barColor, ind.score)
+		sb.WriteString(fmt.Sprintf(`<tr%s><td class="left">%s</td><td>%s</td><td>%.1f</td></tr>`, cls, ind.name, bar, ind.score))
 	}
 	sb.WriteString(`</tbody></table>`)
 }
@@ -309,6 +322,143 @@ func getGradeColorHex(grade string) string {
 	default:
 		return "#b42318"
 	}
+}
+
+func writeIndicatorComparisonTable(sb *strings.Builder, before, after *assessment.Assessment, isEn bool) {
+	type ind struct {
+		name        string
+		scoreBefore float64
+		scoreAfter  float64
+	}
+	indicators := []ind{
+		{"Row Completeness", before.RowCompleteness, after.RowCompleteness},
+		{"Column Completeness", before.ColumnCompleteness, after.ColumnCompleteness},
+		{"Format Consistency", before.FormatConsistency, after.FormatConsistency},
+		{"Duplicate/Similar", before.DuplicateSimilar, after.DuplicateSimilar},
+		{"Table Structure", before.TableStructure, after.TableStructure},
+		{"AI Query Readiness", before.AIQueryReadiness, after.AIQueryReadiness},
+	}
+	if !isEn {
+		indicators[0].name = "列完整度"
+		indicators[1].name = "欄完整度"
+		indicators[2].name = "格式一致性"
+		indicators[3].name = "重複/相似"
+		indicators[4].name = "表格結構"
+		indicators[5].name = "AI查詢準備度"
+	}
+
+	h1, h2, h3, h4 := "Indicator", "Before", "After", "Change"
+	if !isEn {
+		h1, h2, h3, h4 = "指標", "梳理前", "梳理後", "改善"
+	}
+
+	sb.WriteString(`<table class="ind-table"><thead><tr>`)
+	sb.WriteString(fmt.Sprintf(`<th>%s</th><th>%s</th><th>%s</th><th>%s</th>`, h1, h2, h3, h4))
+	sb.WriteString(`</tr></thead><tbody>`)
+	for i, ind := range indicators {
+		cls := ""
+		if i%2 == 0 {
+			cls = ` class="alt"`
+		}
+		delta := ind.scoreAfter - ind.scoreBefore
+		deltaStr := fmt.Sprintf("+%.1f", delta)
+		deltaColor := "#15803d"
+		if delta <= 0 {
+			deltaStr = fmt.Sprintf("%.1f", delta)
+			deltaColor = "#666"
+		}
+		sb.WriteString(fmt.Sprintf(`<tr%s><td class="left">%s</td><td>%.1f</td><td>%.1f</td><td style="color:%s;font-weight:600">%s</td></tr>`,
+			cls, ind.name, ind.scoreBefore, ind.scoreAfter, deltaColor, deltaStr))
+	}
+	sb.WriteString(`</tbody></table>`)
+}
+
+func writeRadarChart(sb *strings.Builder, before, after *assessment.Assessment, isEn bool) {
+	// Simple SVG radar chart
+	labels := []string{"Row", "Col", "Format", "Dup", "Structure", "AI"}
+	if !isEn {
+		labels = []string{"列", "欄", "格式", "重複", "結構", "AI"}
+	}
+	beforeScores := []float64{before.RowCompleteness, before.ColumnCompleteness, before.FormatConsistency, before.DuplicateSimilar, before.TableStructure, before.AIQueryReadiness}
+	afterScores := []float64{after.RowCompleteness, after.ColumnCompleteness, after.FormatConsistency, after.DuplicateSimilar, after.TableStructure, after.AIQueryReadiness}
+
+	cx, cy, r := 150.0, 140.0, 100.0
+	n := len(labels)
+
+	sb.WriteString(`<div style="text-align:center;margin:16px 0">`)
+	sb.WriteString(fmt.Sprintf(`<svg width="300" height="300" viewBox="0 0 300 300" style="font-family:sans-serif;font-size:10px">`))
+
+	// Grid circles
+	for _, pct := range []float64{0.25, 0.5, 0.75, 1.0} {
+		sb.WriteString(fmt.Sprintf(`<circle cx="%.0f" cy="%.0f" r="%.0f" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>`, cx, cy, r*pct))
+	}
+
+	// Axis lines + labels
+	pointAt := func(i int) (float64, float64) {
+		angle := float64(i)*2*3.14159/float64(n) - 3.14159/2
+		x := cx + r*cosApprox(angle)
+		y := cy + r*sinApprox(angle)
+		return x, y
+	}
+	for i, label := range labels {
+		x, y := pointAt(i)
+		sb.WriteString(fmt.Sprintf(`<line x1="%.0f" y1="%.0f" x2="%.1f" y2="%.1f" stroke="#e5e7eb" stroke-width="0.5"/>`, cx, cy, x, y))
+		// Label position (slightly outside)
+		lx := cx + (r+15)*cosApprox(float64(i)*2*3.14159/float64(n)-3.14159/2)
+		ly := cy + (r+15)*sinApprox(float64(i)*2*3.14159/float64(n)-3.14159/2)
+		sb.WriteString(fmt.Sprintf(`<text x="%.1f" y="%.1f" text-anchor="middle" fill="#666">%s</text>`, lx, ly+4, label))
+	}
+
+	// Before polygon
+	sb.WriteString(`<polygon points="`)
+	for i, score := range beforeScores {
+		pct := score / 100.0
+		angle := float64(i)*2*3.14159/float64(n) - 3.14159/2
+		x := cx + r*pct*cosApprox(angle)
+		y := cy + r*pct*sinApprox(angle)
+		if i > 0 {
+			sb.WriteString(" ")
+		}
+		sb.WriteString(fmt.Sprintf("%.1f,%.1f", x, y))
+	}
+	sb.WriteString(`" fill="rgba(148,163,184,0.2)" stroke="#94a3b8" stroke-width="1.5"/>`)
+
+	// After polygon
+	sb.WriteString(`<polygon points="`)
+	for i, score := range afterScores {
+		pct := score / 100.0
+		angle := float64(i)*2*3.14159/float64(n) - 3.14159/2
+		x := cx + r*pct*cosApprox(angle)
+		y := cy + r*pct*sinApprox(angle)
+		if i > 0 {
+			sb.WriteString(" ")
+		}
+		sb.WriteString(fmt.Sprintf("%.1f,%.1f", x, y))
+	}
+	sb.WriteString(`" fill="rgba(21,128,61,0.15)" stroke="#15803d" stroke-width="1.5"/>`)
+
+	// Legend
+	sb.WriteString(`<rect x="200" y="270" width="12" height="12" fill="rgba(148,163,184,0.4)"/>`)
+	beforeLabel := "Before"
+	afterLabel := "After"
+	if !isEn {
+		beforeLabel = "梳理前"
+		afterLabel = "梳理後"
+	}
+	sb.WriteString(fmt.Sprintf(`<text x="216" y="280" fill="#666">%s</text>`, beforeLabel))
+	sb.WriteString(`<rect x="260" y="270" width="12" height="12" fill="rgba(21,128,61,0.3)"/>`)
+	sb.WriteString(fmt.Sprintf(`<text x="276" y="280" fill="#666">%s</text>`, afterLabel))
+
+	sb.WriteString(`</svg></div>`)
+}
+
+// Simple trig functions for radar chart
+func cosApprox(angle float64) float64 {
+	return math.Cos(angle)
+}
+
+func sinApprox(angle float64) float64 {
+	return math.Sin(angle)
 }
 
 func reportCSS() string {
