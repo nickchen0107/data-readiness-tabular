@@ -107,6 +107,23 @@ export default function CleaningPage() {
 
   useEffect(() => {
     loadAssessment()
+    // Check if cleaning was already done for the CURRENT assessment
+    apiClient.get('/clean/latest').then((res) => {
+      if (res.data && (res.data.session_id || res.data.id)) {
+        // Only show result if it matches current assessment
+        apiClient.get('/assess/latest').then((assessRes) => {
+          if (assessRes.data && res.data.assessment_id === assessRes.data.id) {
+            setResult({
+              session_id: res.data.session_id || res.data.id,
+              rows_before: res.data.rows_before || 0,
+              rows_after: res.data.rows_after || 0,
+              score_before: res.data.score_before || 0,
+              score_after: res.data.score_after || 0,
+            })
+          }
+        }).catch(() => {})
+      }
+    }).catch(() => {})
   }, [])
 
   const loadAssessment = async () => {

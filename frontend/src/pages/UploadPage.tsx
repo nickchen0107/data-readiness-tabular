@@ -33,9 +33,21 @@ export default function UploadPage() {
   useEffect(() => {
     apiClient.get('/quota/me').then((res) => {
       setQuota(res.data)
-    }).catch(() => {
-      // Quota endpoint not available; allow usage
-    })
+    }).catch(() => {})
+
+    // Load latest upload if exists (for returning to this page)
+    apiClient.get('/assess/latest').then((res) => {
+      if (res.data && res.data.id) {
+        // We have a latest assessment — load the upload info
+        setUploadResult({
+          id: res.data.upload_id || '',
+          filename: res.data.filename || 'uploaded-file.xlsx',
+          row_count: res.data.total_rows || 0,
+          col_count: 0,
+          sheet_names: [],
+        })
+      }
+    }).catch(() => {})
   }, [])
 
   const handleFile = async (file: File) => {
