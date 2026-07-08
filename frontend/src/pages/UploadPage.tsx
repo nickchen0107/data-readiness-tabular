@@ -27,6 +27,7 @@ export default function UploadPage() {
   const [error, setError] = useState('')
   const [assessing, setAssessing] = useState(false)
   const [quota, setQuota] = useState<QuotaInfo | null>(null)
+  const [isHistoryView, setIsHistoryView] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -35,17 +36,18 @@ export default function UploadPage() {
       setQuota(res.data)
     }).catch(() => {})
 
-    // Load latest upload if exists (for returning to this page)
+    // Load latest assessment to show upload info on revisit
     apiClient.get('/assess/latest').then((res) => {
-      if (res.data && res.data.id) {
-        // We have a latest assessment — load the upload info
+      if (res.data && res.data.id && res.data.filename) {
         setUploadResult({
-          id: res.data.upload_id || '',
-          filename: res.data.filename || 'uploaded-file.xlsx',
+          id: res.data.upload_id || res.data.id,
+          filename: res.data.filename || '',
           row_count: res.data.total_rows || 0,
-          col_count: 0,
+          col_count: res.data.col_count || 0,
           sheet_names: [],
         })
+        setSelectedSheet(res.data.selected_sheet || 'Sheet1')
+        setIsHistoryView(true)
       }
     }).catch(() => {})
   }, [])
@@ -65,6 +67,7 @@ export default function UploadPage() {
     setError('')
     setUploadResult(null)
     setSelectedSheet('')
+    setIsHistoryView(false)
     setUploading(true)
     setProgress(0)
 
@@ -336,17 +339,26 @@ export default function UploadPage() {
           ) : (
             <>
               <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                {t('common.ready_for_assess')}
+                {isHistoryView ? t('status.upload_complete') : t('common.ready_for_assess')}
               </span>
               <div style={{ position: 'relative' }}>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleStartAssessment}
-                  disabled={quotaExhausted || (!selectedSheet && uploadResult.sheet_names.length > 1)}
-                  title={quotaExhausted ? t('tooltip.quota_exhausted') : undefined}
-                >
-                  {t('btn.start_assess')} →
-                </button>
+                {isHistoryView ? (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => navigate('/assessment')}
+                  >
+                    View Assessment →
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleStartAssessment}
+                    disabled={quotaExhausted || (!selectedSheet && uploadResult.sheet_names.length > 1)}
+                    title={quotaExhausted ? t('tooltip.quota_exhausted') : undefined}
+                  >
+                    {t('btn.start_assess')} →
+                  </button>
+                )}
               </div>
             </>
           )}
