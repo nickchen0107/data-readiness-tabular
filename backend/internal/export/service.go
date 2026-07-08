@@ -83,7 +83,7 @@ func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.Cleanin
 		return cachedPath, nil
 	}
 
-	// Get assessment for the report data
+	// Get original assessment for the report data
 	assess, err := s.assessRepo.GetByID(ctx, session.AssessmentID)
 	if err != nil {
 		return "", fmt.Errorf("取得評估記錄失敗: %w", err)

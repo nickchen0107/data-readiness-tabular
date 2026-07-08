@@ -17,14 +17,15 @@ type ComparisonResponse struct {
 
 // SessionSummary contains cleaning session metadata.
 type SessionSummary struct {
-	ID           uuid.UUID          `json:"id"`
-	RowsBefore   int                `json:"rows_before"`
-	RowsAfter    int                `json:"rows_after"`
-	ScoreBefore  float64            `json:"score_before"`
-	ScoreAfter   float64            `json:"score_after"`
-	RulesApplied []string           `json:"rules_applied"`
-	CleaningLog  []cleaning.LogEntry `json:"cleaning_log"`
-	CreatedAt    time.Time          `json:"created_at"`
+	ID               uuid.UUID          `json:"id"`
+	RowsBefore       int                `json:"rows_before"`
+	RowsAfter        int                `json:"rows_after"`
+	ScoreBefore      float64            `json:"score_before"`
+	ScoreAfter       float64            `json:"score_after"`
+	RulesApplied     []string           `json:"rules_applied"`
+	CleaningLog      []cleaning.LogEntry `json:"cleaning_log"`
+	OriginalFilename string             `json:"original_filename"`
+	CreatedAt        time.Time          `json:"created_at"`
 }
 
 // AssessmentSummary contains the indicator scores and issues for one assessment.

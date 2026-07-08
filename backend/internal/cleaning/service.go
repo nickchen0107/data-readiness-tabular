@@ -197,6 +197,7 @@ func (s *Service) ApplyRules(ctx context.Context, userID uuid.UUID, req CleanReq
 		ScoreAfter:      scoreAfter,
 		CleaningLog:     cleaningLog,
 		RefinedFilePath: refinedPath,
+		OriginalFilename: assess.Filename,
 	}
 
 	if err := s.repo.Create(ctx, session); err != nil {
@@ -685,6 +686,7 @@ func (s *Service) ApplyInteractiveEdits(ctx context.Context, userID uuid.UUID, r
 		ScoreAfter:   assess.TotalScore, // score unchanged until re-assessment
 		CleaningLog:  logEntries,
 		RefinedFilePath: refinedPath,
+		OriginalFilename: assess.Filename,
 	}
 
 	if err := s.repo.Create(ctx, session); err != nil {

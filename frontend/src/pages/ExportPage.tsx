@@ -51,6 +51,7 @@ interface ComparisonData {
     score_after: number
     rules_applied: string[]
     cleaning_log: LogEntry[]
+    original_filename: string
   }
   original_assessment: AssessmentSummary
   post_clean_assessment: AssessmentSummary
@@ -322,9 +323,9 @@ export default function ExportPage() {
   }
 
   const downloads = [
-    { type: 'xlsx' as const, icon: '📊', label: t('export.refined_data'), filename: 'refined.xlsx', desc: t('export.refined_data.desc') },
-    { type: 'pdf' as const, icon: '📋', label: t('export.quality_report'), filename: 'report.pdf', desc: t('export.quality_report.desc') },
-    { type: 'log' as const, icon: '📝', label: t('export.cleaning_log'), filename: 'cleaning.log', desc: t('export.cleaning_log.desc') },
+    { type: 'xlsx' as const, icon: '📊', label: t('export.refined_data'), desc: t('export.refined_data.desc') },
+    { type: 'pdf' as const, icon: '📋', label: t('export.quality_report'), desc: t('export.quality_report.desc') },
+    { type: 'log' as const, icon: '📝', label: t('export.cleaning_log'), desc: t('export.cleaning_log.desc') },
   ]
 
   /* ─── Render (mirrors AssessmentPage layout) ─── */
@@ -699,7 +700,7 @@ export default function ExportPage() {
                 style={{ border: '1.5px solid var(--line)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s', background: 'var(--panel)', opacity: downloading === dl.type ? 0.5 : 1 }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>{dl.icon}</div>
                 <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{dl.label}</div>
-                <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-faint)' }}>{downloading === dl.type ? t('common.downloading') + '...' : dl.filename}</div>
+                {downloading === dl.type && <div style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--ink-faint)' }}>{t('common.downloading')}...</div>}
                 <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 6 }}>{dl.desc}</div>
               </button>
             ))}

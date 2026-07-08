@@ -52,14 +52,15 @@ func (s *Service) GetComparison(ctx context.Context, sessionID, userID uuid.UUID
 	// 4. Assemble response
 	resp := &ComparisonResponse{
 		Session: SessionSummary{
-			ID:           session.ID,
-			RowsBefore:   session.RowsBefore,
-			RowsAfter:    session.RowsAfter,
-			ScoreBefore:  session.ScoreBefore,
-			ScoreAfter:   session.ScoreAfter,
-			RulesApplied: session.RulesApplied,
-			CleaningLog:  session.CleaningLog,
-			CreatedAt:    session.CreatedAt,
+			ID:               session.ID,
+			RowsBefore:       session.RowsBefore,
+			RowsAfter:        session.RowsAfter,
+			ScoreBefore:      session.ScoreBefore,
+			ScoreAfter:       session.ScoreAfter,
+			RulesApplied:     session.RulesApplied,
+			CleaningLog:      session.CleaningLog,
+			OriginalFilename: session.OriginalFilename,
+			CreatedAt:        session.CreatedAt,
 		},
 		OriginalAssess: assessmentToSummary(originalAssess),
 		PostCleanAssess: postAssess,
