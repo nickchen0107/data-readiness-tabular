@@ -2,6 +2,7 @@ import { useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useStepper } from '../contexts/StepperContext'
 import LanguageSwitcher from './LanguageSwitcher'
 import apiClient from '../api/client'
 
@@ -30,6 +31,7 @@ const STEP_SUBS = ['Landing', 'Upload', 'Assess', 'Route', 'Clean', 'Export', 'E
 export default function Layout() {
   const { user, logout } = useAuth()
   const { t } = useTranslation()
+  const { maxReachedStep } = useStepper()
   const location = useLocation()
   const navigate = useNavigate()
   const [quota, setQuota] = useState<{ remaining: number; max_assessments: number } | null>(null)
@@ -117,24 +119,27 @@ export default function Layout() {
       }}>
         {STEP_PATHS.map((path, i) => {
           const isActive = i === currentStepIndex
-          const isDone = i < currentStepIndex
+          const isReached = i <= maxReachedStep
+          const isNextStep = i === maxReachedStep + 1
+          const canClick = isReached || isNextStep
           return (
             <div key={path} style={{ display: 'flex', alignItems: 'center' }}>
               <div
-                onClick={() => navigate(path)}
+                onClick={() => { if (canClick) navigate(path) }}
+                title={!canClick ? t('nav.stepper_disabled') : undefined}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 9,
                   paddingRight: 8, whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  opacity: isActive ? 1 : isDone ? 0.8 : 0.5,
+                  cursor: canClick ? 'pointer' : 'not-allowed',
+                  opacity: isActive ? 1 : isReached ? 0.8 : isNextStep ? 0.5 : 0.3,
                   transition: 'opacity 0.25s',
                 }}
               >
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%',
-                  border: isActive ? '1.5px solid var(--accent)' : isDone ? '1.5px solid var(--ink)' : '1.5px solid var(--ink-faint)',
-                  background: isActive ? 'var(--accent)' : isDone ? 'var(--ink)' : 'transparent',
-                  color: (isActive || isDone) ? '#fff' : 'var(--ink-faint)',
+                  border: isActive ? '1.5px solid var(--accent)' : isReached ? '1.5px solid var(--ink)' : '1.5px solid var(--ink-faint)',
+                  background: isActive ? 'var(--accent)' : isReached ? 'var(--ink)' : 'transparent',
+                  color: (isActive || isReached) ? '#fff' : 'var(--ink-faint)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 12, fontFamily: 'var(--mono)', flexShrink: 0,
                 }}>
