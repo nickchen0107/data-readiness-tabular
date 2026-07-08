@@ -1,8 +1,9 @@
 import { useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useStepper } from '../contexts/StepperContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import apiClient from '../api/client'
 
 const STEP_KEYS = [
   'stepper.landing',
@@ -29,11 +30,15 @@ const STEP_SUBS = ['Landing', 'Upload', 'Assess', 'Route', 'Clean', 'Export', 'E
 export default function Layout() {
   const { user, logout } = useAuth()
   const { t } = useTranslation()
-  const { canNavigateTo } = useStepper()
   const location = useLocation()
   const navigate = useNavigate()
+  const [quota, setQuota] = useState<{ remaining: number; max_assessments: number } | null>(null)
 
   const currentStepIndex = STEP_PATHS.findIndex((p) => location.pathname.startsWith(p))
+
+  useEffect(() => {
+    apiClient.get('/quota/me').then((res) => setQuota(res.data)).catch(() => {})
+  }, [location.pathname])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -75,6 +80,19 @@ export default function Layout() {
             </button>
           )}
           <LanguageSwitcher />
+          {quota !== null && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: quota.remaining > 0 ? 'var(--accent-soft)' : 'var(--rose-soft)',
+              border: `1px solid ${quota.remaining > 0 ? 'var(--accent)' : 'var(--rose)'}`,
+              borderRadius: 20, padding: '4px 12px',
+              fontSize: 11, fontFamily: 'var(--mono)', fontWeight: 600,
+              color: quota.remaining > 0 ? 'var(--accent)' : 'var(--rose)',
+            }}>
+              <span style={{ fontSize: 13 }}>⚡</span>
+              {quota.remaining} / {quota.max_assessments}
+            </div>
+          )}
           {user && (
             <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-faint)' }}>
               {user.email}
@@ -100,19 +118,15 @@ export default function Layout() {
         {STEP_PATHS.map((path, i) => {
           const isActive = i === currentStepIndex
           const isDone = i < currentStepIndex
-          const isDisabled = !canNavigateTo(i)
           return (
             <div key={path} style={{ display: 'flex', alignItems: 'center' }}>
               <div
-                onClick={() => {
-                  if (!isDisabled) navigate(path)
-                }}
-                title={isDisabled ? t('nav.stepper_disabled') : undefined}
+                onClick={() => navigate(path)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 9,
                   paddingRight: 8, whiteSpace: 'nowrap',
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  opacity: isActive ? 1 : isDisabled ? 0.3 : isDone ? 0.8 : 0.45,
+                  cursor: 'pointer',
+                  opacity: isActive ? 1 : isDone ? 0.8 : 0.5,
                   transition: 'opacity 0.25s',
                 }}
               >
