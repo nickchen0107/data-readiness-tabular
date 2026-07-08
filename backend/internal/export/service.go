@@ -104,6 +104,12 @@ func (s *Service) GeneratePDFFile(ctx context.Context, session *cleaning.Cleanin
 		Locale:          locale,
 	}
 
+	// Try chromedp (headless Chrome) first for pixel-perfect output
+	result, err := GeneratePDFChromedp(reportData, s.cfg, outputDir)
+	if err == nil {
+		return result, nil
+	}
+	// Fallback to fpdf if chromedp fails
 	return GeneratePDF(reportData, s.cfg, outputDir)
 }
 

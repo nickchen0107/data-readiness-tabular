@@ -15,6 +15,7 @@ import CleaningPage from './pages/CleaningPage'
 import ExportPage from './pages/ExportPage'
 import EvidencePage from './pages/EvidencePage'
 import SettingsPage from './pages/SettingsPage'
+import ReportPage from './pages/ReportPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import UsersPage from './pages/admin/UsersPage'
 import QuotaSettingsPage from './pages/admin/QuotaSettingsPage'
@@ -46,6 +47,7 @@ function App() {
             <Route path="/evidence" element={<EvidencePage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
+          <Route path="/report" element={<ReportPage />} />
           <Route
             path="/admin"
             element={

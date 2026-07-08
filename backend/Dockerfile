@@ -24,6 +24,12 @@ FROM alpine:3.19
 
 WORKDIR /app
 
+# Install Chromium for PDF generation via chromedp (headless Chrome)
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
+
+# Set Chromium path for chromedp
+ENV CHROME_PATH=/usr/bin/chromium-browser
+
 # Create uploads directory
 RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 
