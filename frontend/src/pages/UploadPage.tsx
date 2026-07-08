@@ -28,6 +28,7 @@ export default function UploadPage() {
   const [assessing, setAssessing] = useState(false)
   const [quota, setQuota] = useState<QuotaInfo | null>(null)
   const [isHistoryView, setIsHistoryView] = useState(false)
+  const hasUserInteracted = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
@@ -38,16 +39,20 @@ export default function UploadPage() {
 
     // Load latest assessment to show upload info on revisit
     apiClient.get('/assess/latest').then((res) => {
-      if (res.data && res.data.id && res.data.filename) {
-        setUploadResult({
-          id: res.data.upload_id || res.data.id,
-          filename: res.data.filename || '',
-          row_count: res.data.total_rows || 0,
-          col_count: res.data.col_count || 0,
-          sheet_names: [],
+      if (hasUserInteracted.current) return
+      if (res.data && res.data.id && res.data.upload_id && res.data.filename) {
+        setUploadResult((current) => {
+          if (current !== null) return current
+          setSelectedSheet(res.data.selected_sheet || '')
+          setIsHistoryView(true)
+          return {
+            id: res.data.upload_id,
+            filename: res.data.filename,
+            row_count: res.data.total_rows || 0,
+            col_count: 0,
+            sheet_names: [],
+          }
         })
-        setSelectedSheet(res.data.selected_sheet || 'Sheet1')
-        setIsHistoryView(true)
       }
     }).catch(() => {})
   }, [])
@@ -68,6 +73,7 @@ export default function UploadPage() {
     setUploadResult(null)
     setSelectedSheet('')
     setIsHistoryView(false)
+    hasUserInteracted.current = true
     setUploading(true)
     setProgress(0)
 
@@ -261,8 +267,13 @@ export default function UploadPage() {
                 background: 'var(--green-soft)', color: 'var(--green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontWeight: 700, fontSize: 11, fontFamily: 'var(--mono)',
+                flexShrink: 0, overflow: 'hidden',
               }}>
-                {uploadResult.filename.split('.').pop()?.toUpperCase()}
+                {(() => {
+                  const parts = uploadResult.filename.split('.')
+                  const ext = parts.length > 1 ? parts.pop()?.toUpperCase() : 'FILE'
+                  return ext
+                })()}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{uploadResult.filename}</div>
@@ -280,6 +291,18 @@ export default function UploadPage() {
               >
                 ↓ Download
               </a>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setUploadResult(null); setSelectedSheet(''); setIsHistoryView(false); setError(''); }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 16, color: 'var(--ink-faint)', marginLeft: 8,
+                  padding: '2px 6px', borderRadius: 4,
+                }}
+                title="Clear"
+              >
+                ✕
+              </button>
             </div>
             <input
               ref={fileInputRef}
