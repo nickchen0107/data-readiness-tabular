@@ -70,9 +70,10 @@ type T3Artifact struct {
 
 // T3EvidenceRecordRequest T3 存證上傳請求
 type T3EvidenceRecordRequest struct {
-	Artifacts   []T3Artifact `json:"artifacts"`
-	ToolVersion string       `json:"toolVersion"`
-	RuleVersion string       `json:"ruleVersion,omitempty"`
+	Artifacts      []T3Artifact `json:"artifacts"`
+	ToolVersion    string       `json:"toolVersion"`
+	RuleVersion    string       `json:"ruleVersion,omitempty"`
+	ParentRecordID string       `json:"parentRecordId,omitempty"`
 }
 
 // T3ArtifactResponse 存證回應中的產物資訊

@@ -116,55 +116,73 @@ func (s *Service) Submit(ctx context.Context, sessionID, userID uuid.UUID) (*Evi
 		recordID = fmt.Sprintf("demo-%s", uuid.New().String()[:8])
 		status = "demo"
 	} else {
-		// 準備 artifacts:
-		// raw_dataset = 原始資料 (hash-only, 不留檔案)
-		// processed_dataset = 梳理後 Excel (ipfs-upload)
-		// cleaning_log = 日誌 (hash-only)
-		artifacts := []T3Artifact{
+		// Step 1: Submit raw_dataset first (to get a recordId for lineage)
+		rawArtifacts := []T3Artifact{
 			{
 				Type:          "raw_dataset",
 				Hash:          rawHash,
 				StorageOption: "hash-only",
-				Description:   fmt.Sprintf("原始資料 (%d 列)", session.RowsBefore),
-			},
-			{
-				Type:          "processed_dataset",
-				Hash:          processedHash,
-				StorageOption: "ipfs-upload",
-				Data:          processedB64,
-				Description:   fmt.Sprintf("梳理後資料集 (%d 列)", session.RowsAfter),
-			},
-			{
-				Type:          "cleaning_log",
-				Hash:          logHash,
-				StorageOption: "hash-only",
-				Description:   "清洗過程日誌",
+				Description:   fmt.Sprintf("Raw dataset (%d rows)", session.RowsBefore),
 			},
 		}
 
-		req := T3EvidenceRecordRequest{
-			Artifacts:   artifacts,
+		rawReq := T3EvidenceRecordRequest{
+			Artifacts:   rawArtifacts,
 			ToolVersion: s.cfg.Blockchain.ToolVersion,
 			RuleVersion: s.cfg.Blockchain.RuleVersion,
 		}
 
-		resp, err := s.t3Client.RecordEvidence(ctx, t3Token, req)
+		rawResp, err := s.t3Client.RecordEvidence(ctx, t3Token, rawReq)
 		if err != nil {
-			log.Printf("[evidence] T3 存證失敗，使用 demo 模式: %v", err)
+			log.Printf("[evidence] T3 raw_dataset 存證失敗，使用 demo 模式: %v", err)
 			recordID = fmt.Sprintf("demo-%s", uuid.New().String()[:8])
 			status = "demo"
 		} else {
-			recordID = resp.RecordID
-			txHash = resp.TransactionID
-			status = resp.SignatureStatus
+			// Step 2: Submit processed_dataset + cleaning_log with parentRecordId
+			processedArtifacts := []T3Artifact{
+				{
+					Type:          "processed_dataset",
+					Hash:          processedHash,
+					StorageOption: "ipfs-upload",
+					Data:          processedB64,
+					Description:   fmt.Sprintf("Processed dataset (%d rows)", session.RowsAfter),
+				},
+				{
+					Type:          "cleaning_log",
+					Hash:          logHash,
+					StorageOption: "hash-only",
+					Description:   "Cleaning operation log",
+				},
+			}
 
-			// 取出各 artifact 的 CID
-			for _, art := range resp.Artifacts {
-				if art.IPFSCid != nil {
-					switch art.Type {
-					case "raw_dataset":
+			processedReq := T3EvidenceRecordRequest{
+				Artifacts:      processedArtifacts,
+				ToolVersion:    s.cfg.Blockchain.ToolVersion,
+				RuleVersion:    s.cfg.Blockchain.RuleVersion,
+				ParentRecordID: rawResp.RecordID,
+			}
+
+			processedResp, err := s.t3Client.RecordEvidence(ctx, t3Token, processedReq)
+			if err != nil {
+				log.Printf("[evidence] T3 processed_dataset 存證失敗，使用 demo 模式: %v", err)
+				// Still use the raw record ID since it succeeded
+				recordID = rawResp.RecordID
+				txHash = rawResp.TransactionID
+				status = rawResp.SignatureStatus
+			} else {
+				// Use the processed record as the primary record (it has the lineage)
+				recordID = processedResp.RecordID
+				txHash = processedResp.TransactionID
+				status = processedResp.SignatureStatus
+
+				// Extract CIDs from both responses
+				for _, art := range rawResp.Artifacts {
+					if art.IPFSCid != nil && art.Type == "raw_dataset" {
 						rawCID = *art.IPFSCid
-					case "processed_dataset":
+					}
+				}
+				for _, art := range processedResp.Artifacts {
+					if art.IPFSCid != nil && art.Type == "processed_dataset" {
 						processedCID = *art.IPFSCid
 					}
 				}
