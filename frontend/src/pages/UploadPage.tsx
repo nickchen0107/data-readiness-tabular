@@ -28,37 +28,15 @@ export default function UploadPage() {
   const [error, setError] = useState('')
   const [assessing, setAssessing] = useState(false)
   const [quota, setQuota] = useState<QuotaInfo | null>(null)
-  const [isHistoryView, setIsHistoryView] = useState(false)
   const hasUserInteracted = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const { resetProgress, maxReachedStep } = useStepper()
+  const { resetProgress } = useStepper()
 
   useEffect(() => {
     apiClient.get('/quota/me').then((res) => {
       setQuota(res.data)
     }).catch(() => {})
-
-    // Load latest assessment to show upload info on revisit — only if user has reached step 2+
-    if (maxReachedStep >= 2) {
-      apiClient.get('/assess/latest').then((res) => {
-        if (hasUserInteracted.current) return
-        if (res.data && res.data.id && res.data.upload_id && res.data.filename) {
-          setUploadResult((current) => {
-            if (current !== null) return current
-            setSelectedSheet(res.data.selected_sheet || '')
-            setIsHistoryView(true)
-            return {
-              id: res.data.upload_id,
-              filename: res.data.filename,
-              row_count: res.data.total_rows || 0,
-              col_count: 0,
-              sheet_names: [],
-            }
-          })
-        }
-      }).catch(() => {})
-    }
   }, [])
 
   const handleFile = async (file: File) => {
@@ -76,7 +54,6 @@ export default function UploadPage() {
     setError('')
     setUploadResult(null)
     setSelectedSheet('')
-    setIsHistoryView(false)
     hasUserInteracted.current = true
     setUploading(true)
     setProgress(0)
@@ -302,7 +279,7 @@ export default function UploadPage() {
               </a>
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setUploadResult(null); setSelectedSheet(''); setIsHistoryView(false); setError(''); }}
+                onClick={(e) => { e.stopPropagation(); setUploadResult(null); setSelectedSheet(''); setError(''); }}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   fontSize: 16, color: 'var(--ink-faint)', marginLeft: 8,
@@ -371,17 +348,9 @@ export default function UploadPage() {
           ) : (
             <>
               <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                {isHistoryView ? t('status.upload_complete') : t('common.ready_for_assess')}
+                {t('common.ready_for_assess')}
               </span>
               <div style={{ position: 'relative' }}>
-                {isHistoryView ? (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => navigate('/assessment')}
-                  >
-                    View Assessment →
-                  </button>
-                ) : (
                   <button
                     className="btn btn-primary"
                     onClick={handleStartAssessment}
@@ -390,7 +359,6 @@ export default function UploadPage() {
                   >
                     {t('btn.start_assess')} →
                   </button>
-                )}
               </div>
             </>
           )}
